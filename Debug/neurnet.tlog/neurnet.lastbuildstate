@@ -1,2 +1,2 @@
-PlatformToolSet=v142:VCToolArchitecture=Native32Bit:VCToolsVersion=14.28.29910:TargetPlatformVersion=10.0.18362.0:VcpkgTriplet=x86-windows:
+PlatformToolSet=v142:VCToolArchitecture=Native32Bit:VCToolsVersion=14.28.29910:TargetPlatformVersion=10.0.17763.0:VcpkgTriplet=x86-windows:
 Debug|Win32|C:\prenos\NeuralFin\|

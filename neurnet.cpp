@@ -414,14 +414,38 @@ void parseCSV(char* file) {
 };
 
 void makeTrainingData() {
+	std::ofstream ofs("c:\\prenos\\NeuralFin\\trainingData2.txt", std::ofstream::out);
+	int incount = 30;
+	int outcount = 5;
+	int coef = 500;
+	ofs << "topology: "<< incount << " " << incount+ outcount+1 << " " << outcount << endl;
+	/*
+topology: 2 4 1
+in : 1.0 0.0
+out : 1.0
+*/
+	int lend = datavect.size();
+	for (int i = 0; i < lend - incount - outcount+1; i++)
+	{
+		ofs << "in: ";
+		for (int j = 0; j < incount; j++)
+			ofs << datavect[i+j].open/ coef << " ";
+		ofs << endl;
+		ofs << "out: ";
+		for (int j = 0; j < outcount; j++)
+			ofs << datavect[i + j+ incount].open/ coef << " ";
+		ofs << endl;
+	}
+
+	ofs.close();
 };
 
 int main()
 {
 	parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
 	makeTrainingData();
-	exit(0);
-	TrainingData trainData("trainingData.txt");
+	//exit(0);
+	TrainingData trainData("trainingData2.txt");
 	//e.g., {3, 2, 1 }
 	vector<unsigned> topology;
 	//topology.push_back(3);
