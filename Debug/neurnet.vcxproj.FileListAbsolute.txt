@@ -1,1 +1,2 @@
 C:\prenos\neurnet\neurnet\Debug\neurnet.exe
+c:\prenos\NeuralFin\Debug\neurnet.exe

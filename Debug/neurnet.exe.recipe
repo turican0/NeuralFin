@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\prenos\neurnet\neurnet\Debug\neurnet.exe</FullPath>
+      <FullPath>C:\prenos\NeuralFin\Debug\neurnet.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

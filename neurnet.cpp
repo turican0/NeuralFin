@@ -367,43 +367,59 @@ void generate()
 
 struct data_t
 {
-	int a;
-	int b;
-	char c;
-	int d;
-	int e;
-	char f;
+	double ear;
+	double moon;
+	double day;
+	double open;
+	double high;
+	double low;
+	double close;
+	double aclose;
+	double volume;
 };
 
 std::istream& operator>>(std::istream& ist, data_t& data)
 {
 	char comma;
-	ist >> data.a >> comma
-		>> data.b >> comma
-		>> data.c >> comma
-		>> data.d >> comma
-		>> data.e >> comma
-		>> data.f
+	ist >> data.ear >> comma
+		>> data.moon >> comma
+		>> data.day >> comma
+		>> data.open >> comma
+		>> data.high >> comma
+		>> data.low >> comma
+		>> data.close >> comma
+		>> data.aclose >> comma
+		>> data.volume
 		;
 	return ist;
 }
 
+std::vector<data_t> datavect;
+
 void parseCSV(char* file) {
 	std::ifstream  data(file);
-	std::string line;
-	std::vector<data_t> datavect;
+	std::string line;	
+	bool first = true;
 	while (std::getline(data, line))
 	{
 		data_t data;
 		std::stringstream lineStream(line);
-		lineStream >> data;
-		datavect.push_back(data);
+		if (first)first = false;
+		else
+		{
+			lineStream >> data;
+			datavect.push_back(data);
+		}
 	}
+};
+
+void makeTrainingData() {
 };
 
 int main()
 {
-	parseCSV((char*)"c:\prenos\neurnet\neurnet\tsla.csv");
+	parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
+	makeTrainingData();
 	exit(0);
 	TrainingData trainData("trainingData.txt");
 	//e.g., {3, 2, 1 }
