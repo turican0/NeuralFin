@@ -5,6 +5,7 @@
 #include <cmath>
 #include <fstream>
 #include <sstream>
+#include <iomanip>      // std::setprecision
 
 using namespace std;
 
@@ -12,6 +13,13 @@ class TrainingData
 {
 public:
 	TrainingData(const string filename);
+	void setBegin(const string filename)
+	{
+		m_trainingDataFile.close();
+		m_trainingDataFile.open(filename.c_str());
+		string line;
+		getline(m_trainingDataFile, line);
+	}
 	bool isEof(void)
 	{
 		return m_trainingDataFile.eof();
@@ -205,6 +213,7 @@ void Neuron::feedForward(const Layer& prevLayer)
 		sum += prevLayer[n].getOutputVal() *
 			prevLayer[n].m_outputWeights[m_myIndex].weight;
 	}
+	sum /= prevLayer.size();
 
 	m_outputVal = Neuron::transferFunction(sum);
 }
@@ -345,7 +354,7 @@ void showVectorVals(string label, vector<double>& v)
 	cout << label << " ";
 	for (unsigned i = 0; i < v.size(); ++i)
 	{
-		cout << v[i] << " ";
+		cout << /*setprecision(15) << fixed <<*/ v[i] << " ";
 	}
 	cout << endl;
 }
@@ -418,7 +427,7 @@ void makeTrainingData() {
 	int incount = 30;
 	int outcount = 5;
 	int coef = 500;
-	ofs << "topology: "<< incount << " " << incount+ outcount+1 << " " << outcount << endl;
+	ofs << "topology: "<< incount << " " << incount+ outcount+1 << " " << incount + outcount + 1 << " " << incount + outcount + 1 << " " << outcount << endl;
 	/*
 topology: 2 4 1
 in : 1.0 0.0
@@ -457,31 +466,36 @@ int main()
 
 	vector<double> inputVals, targetVals, resultVals;
 	int trainingPass = 0;
-	while (!trainData.isEof())
+	
+	for (int ii = 0; ii < 1000; ii++)
 	{
-		++trainingPass;
-		cout << endl << "Pass" << trainingPass;
+		trainData.setBegin("trainingData2.txt");
+		while (!trainData.isEof())
+		{
+			++trainingPass;
+			cout << endl << "Pass" << trainingPass;
 
-		// Get new input data and feed it forward:
-		if (trainData.getNextInputs(inputVals) != topology[0])
-			break;
-		showVectorVals(": Inputs :", inputVals);
-		myNet.feedForward(inputVals);
+			// Get new input data and feed it forward:
+			if (trainData.getNextInputs(inputVals) != topology[0])
+				break;
+			showVectorVals(": Inputs :", inputVals);
+			myNet.feedForward(inputVals);
 
-		// Collect the net's actual results:
-		myNet.getResults(resultVals);
-		showVectorVals("Outputs:", resultVals);
+			// Collect the net's actual results:
+			myNet.getResults(resultVals);
+			showVectorVals("Outputs:", resultVals);
 
-		// Train the net what the outputs should have been:
-		trainData.getTargetOutputs(targetVals);
-		showVectorVals("Targets:", targetVals);
-		assert(targetVals.size() == topology.back());
+			// Train the net what the outputs should have been:
+			trainData.getTargetOutputs(targetVals);
+			showVectorVals("Targets:", targetVals);
+			assert(targetVals.size() == topology.back());
 
-		myNet.backProp(targetVals);
+			myNet.backProp(targetVals);
 
-		// Report how well the training is working, average over recnet
-		cout << "Net recent average error: "
-			<< myNet.getRecentAverageError() << endl;
+			// Report how well the training is working, average over recnet
+			cout << "Net recent average error: "
+				<< myNet.getRecentAverageError() << endl;
+		}
 	}
 
 	cout << endl << "Done" << endl;
