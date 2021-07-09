@@ -116,6 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\prenos\NeuralFin\tf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,7 +140,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Layer.cpp" />
+    <ClCompile Include="Matrix.cpp" />
+    <ClCompile Include="neural_network\backPropagation.cpp" />
+    <ClCompile Include="neural_network\feedForward.cpp" />
+    <ClCompile Include="neural_network\NeuralNetwork.cpp" />
+    <ClCompile Include="neural_network\setErrors.cpp" />
+    <ClCompile Include="neural_network\train.cpp" />
     <ClCompile Include="neurnet.cpp" />
+    <ClCompile Include="Neuron.cpp" />
+    <ClCompile Include="utils\Math.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="tf\lib\tensorflow.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
