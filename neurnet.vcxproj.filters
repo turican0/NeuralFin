@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="tf-lib">
-      <UniqueIdentifier>{34632b05-234f-4426-8e1e-f4ecbb9607af}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="neurnet.cpp">
@@ -48,10 +45,5 @@
     <ClCompile Include="utils\Math.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="tf\lib\tensorflow.lib">
-      <Filter>tf-lib</Filter>
-    </Library>
   </ItemGroup>
 </Project>

@@ -12,17 +12,107 @@
 
 using namespace std;
 
+struct data_t
+{
+    double ear;
+    double moon;
+    double day;
+    double open;
+    double high;
+    double low;
+    double close;
+    double aclose;
+    double volume;
+};
+
+std::istream& operator>>(std::istream& ist, data_t& data)
+{
+    char comma;
+    ist >> data.ear >> comma
+        >> data.moon >> comma
+        >> data.day >> comma
+        >> data.open >> comma
+        >> data.high >> comma
+        >> data.low >> comma
+        >> data.close >> comma
+        >> data.aclose >> comma
+        >> data.volume
+        ;
+    return ist;
+}
+
+std::vector<data_t> datavect;
+
+void parseCSV(char* file) {
+    std::ifstream  data(file);
+    std::string line;
+    bool first = true;
+    while (std::getline(data, line))
+    {
+        data_t data;
+        std::stringstream lineStream(line);
+        if (first)first = false;
+        else
+        {
+            lineStream >> data;
+            datavect.push_back(data);
+        }
+    }
+};
+
+void parseCSV2(char* file) {
+    std::ifstream  data(file);
+    std::string line;
+    bool first = true;
+    while (std::getline(data, line))
+    {
+        data_t data;
+        std::stringstream lineStream(line);
+        if (first)first = false;
+        else
+        {
+            lineStream >> data;
+            datavect.push_back(data);
+        }
+    }
+};
+
+double koef=1;
+
+void findKoef() {
+    double maxx=0;
+    for (data_t actdata : datavect)
+        /*(x in datavect)*/ {
+        if (actdata.open > maxx)maxx = actdata.open;
+    }
+    koef = maxx / 2;
+};
+
 int main(int argc, char **argv) {
+
+        //parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
+        parseCSV2((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
+
+        findKoef();
+
+        int inputsize = 30;
+        int opputsize = 5;
+        int addx = 0;
        // Segundo teste:
         vector<double> input;
+        for(int i=0;i< inputsize;i++)
+            input.push_back(datavect[i+ addx].open/ koef);
+        /*
         input.push_back(0.2);
         input.push_back(0.5);
-        input.push_back(0.1);
+        input.push_back(0.1);*/
        
         vector<double> target;
-        target.push_back(0.2); 
+        for (int i = 0; i < opputsize; i++)
+            target.push_back(datavect[i + inputsize + addx].open / koef);
+        /*target.push_back(0.2); 
         target.push_back(0.5); 
-        target.push_back(0.1);
+        target.push_back(0.9);*/
     
         double learningRate  = 0.05;
         double momentum      = 1;

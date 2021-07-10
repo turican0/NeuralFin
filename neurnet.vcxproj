@@ -151,9 +151,6 @@
     <ClCompile Include="Neuron.cpp" />
     <ClCompile Include="utils\Math.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="tf\lib\tensorflow.lib" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
