@@ -60,23 +60,6 @@ void parseCSV(char* file) {
     }
 };
 
-void parseCSV2(char* file) {
-    std::ifstream  data(file);
-    std::string line;
-    bool first = true;
-    while (std::getline(data, line))
-    {
-        data_t data;
-        std::stringstream lineStream(line);
-        if (first)first = false;
-        else
-        {
-            lineStream >> data;
-            datavect.push_back(data);
-        }
-    }
-};
-
 double koef=1;
 
 void findKoef() {
@@ -90,13 +73,12 @@ void findKoef() {
 
 int main(int argc, char **argv) {
 
-        //parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
-        parseCSV2((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
+        parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
 
         findKoef();
 
         int inputsize = 30;
-        int opputsize = 5;
+        int outputsize = 5;
         int addx = 0;
        // Segundo teste:
         vector<double> input;
@@ -108,7 +90,7 @@ int main(int argc, char **argv) {
         input.push_back(0.1);*/
        
         vector<double> target;
-        for (int i = 0; i < opputsize; i++)
+        for (int i = 0; i < outputsize; i++)
             target.push_back(datavect[i + inputsize + addx].open / koef);
         /*target.push_back(0.2); 
         target.push_back(0.5); 
@@ -127,8 +109,19 @@ int main(int argc, char **argv) {
 
         for (int i = 0; i < 1000; i++) {
             // cout << "Training at index " << i << endl;
-            n->train(input, target, bias, learningRate, momentum);
+            addx = 0;
+            for (int j = 0; j < 5/*datavect.size()- inputsize- outputsize*/; j++)
+            {
+                for (int k = 0; k < inputsize; k++)
+                    input[k]=datavect[k + addx].open / koef;
+                for (int k = 0; k < outputsize; k++)
+                    target[k]=datavect[k + inputsize + addx].open / koef;
+                n->train(input, target, bias, learningRate, momentum);
+                addx++;
+                cout << "Index: " << j << endl;
+            }
             cout << "Error: " << n->error << endl;
+            n->saveWeights((char*)"c:\\prenos\\NeuralFin\\tslaW.csv");
         }
        // Primeiro teste:
 /*     for (int i = 0; i < 100; i++) {

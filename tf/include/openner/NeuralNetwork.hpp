@@ -59,6 +59,8 @@ public:
         double momentum
     );
 
+    void saveWeights(char* file);
+
     int topologySize;
     int hiddenActivationType    = RELU;
     int outputActivationType    = SIGM;

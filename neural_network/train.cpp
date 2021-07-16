@@ -18,3 +18,19 @@ void NeuralNetwork::train(
     this->setErrors();
     this->backPropagation();
 }
+
+void NeuralNetwork::saveWeights(
+    char* file
+) {
+    ofstream myfile(file);
+    
+        if (myfile.is_open())
+        {
+            for (Matrix* elem : this->weightMatrices) {
+                myfile << elem << "\n";
+            }
+            myfile.close();
+        }       
+    
+    else cout << "Unable to open file";
+}
