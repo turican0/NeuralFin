@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{0c92b4f9-48d1-4b94-b681-4a99c1b6fa42}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="neurnet.cpp">
@@ -45,5 +48,13 @@
     <ClCompile Include="utils\Math.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="sdl2-2.0.8\lib\x64\SDL2main.lib">
+      <Filter>lib</Filter>
+    </Library>
+    <Library Include="sdl2-2.0.8\lib\x64\SDL2.lib">
+      <Filter>lib</Filter>
+    </Library>
   </ItemGroup>
 </Project>

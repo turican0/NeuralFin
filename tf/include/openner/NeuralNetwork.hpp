@@ -59,7 +59,12 @@ public:
         double momentum
     );
 
+    void test(
+        vector<double> input
+        );
+
     void saveWeights(char* file);
+    void loadWeights(char* file);
 
     int topologySize;
     int hiddenActivationType    = RELU;
