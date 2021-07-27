@@ -70,13 +70,13 @@ void findKoef() {
         /*(x in datavect)*/ {
         if (actdata.open > maxx)maxx = actdata.open;
     }
-    koef = maxx;
+    koef = maxx*3;
 };
 
 SDL_bool done = SDL_FALSE;
 
 int inputsize = 30;
-int outputsize = 5;
+int outputsize = 1;
 int addx = 0;
 
 void drawgraph(SDL_Renderer* renderer,NeuralNetwork* n, int pos) {
@@ -91,16 +91,19 @@ void drawgraph(SDL_Renderer* renderer,NeuralNetwork* n, int pos) {
     for (int i=0;i<datavect.size();i++)
     {
         int x1 = ((double)i / datavect.size()) * rendx;
-        int y1 = rendy-(datavect[i].open / koef * rendy);
+        int y1 = rendy-(datavect[i].open / (koef/3) * rendy);
         if(i>0)
             SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
         oldx = x1;
         oldy = y1;
     }
     vector<double> input;
+    for (int k = 0; k < inputsize; k++)
+        input.push_back(0);
+    for (int posi = 0; posi <datavect.size()- outputsize- inputsize; posi++)
     {
         for (int k = 0; k < inputsize; k++)
-            input.push_back(datavect[k + pos].open / koef);
+            input[k]=datavect[k + posi].open / koef;
         n->test(input);
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
 
@@ -109,11 +112,20 @@ void drawgraph(SDL_Renderer* renderer,NeuralNetwork* n, int pos) {
 
         for (int i = 0; i < outputsize; i++) {
             double y = outputNeurons.at(i)->getActivatedVal();
-
-            int x1 = ((double)(i+pos) / datavect.size()) * rendx;
-            int y1 = rendy - (y * rendy);
+            int x1 = ((double)(i+posi+ inputsize) / datavect.size()) * rendx;
+            int y1 = rendy - (y * rendy)*3.0;
             if (i > 0)
                 SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
+            else
+            {
+                int prex1 = ((double)(posi + inputsize-1) / datavect.size()) * rendx;
+                int prey1 = rendy - (datavect[posi + inputsize - 1].open / (koef / 3) * rendy);
+                //int prex1 = ((double)posi / datavect.size()) * rendx;
+                //int prey1 = rendy - (datavect[posi].open / (koef / 3) * rendy);
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+                SDL_RenderDrawLine(renderer, prex1, prey1, x1, y1);
+                SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+            }
             oldx = x1;
             oldy = y1;
         }
@@ -133,6 +145,9 @@ void drawgraph(SDL_Renderer* renderer,NeuralNetwork* n, int pos) {
 };
 
 void mainx(SDL_Renderer* renderer/*int argc, char **argv*/) {
+    double olderror3=0;
+    double olderror2=0;
+    double olderror=0;
 
         parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
 
@@ -172,7 +187,7 @@ void mainx(SDL_Renderer* renderer/*int argc, char **argv*/) {
         topology.push_back(21);
         topology.push_back(65);
 
-        NeuralNetwork *n = new NeuralNetwork(topology, 2, 3, 1, 1, 0.05, 1);
+        NeuralNetwork *n = new NeuralNetwork(topology, 2, 3, 1, bias, learningRate, momentum);
 
         n->loadWeights((char*)"c:\\prenos\\NeuralFin\\tslaW.csv");
 
@@ -181,6 +196,7 @@ void mainx(SDL_Renderer* renderer/*int argc, char **argv*/) {
         for (int i = 0; i < 1000; i++) {
             // cout << "Training at index " << i << endl;
             addx = 0;
+            double allerror = 0;
             for (int j = 0; j < datavect.size()- inputsize- outputsize; j++)
             {
                 for (int k = 0; k < inputsize; k++)
@@ -190,9 +206,14 @@ void mainx(SDL_Renderer* renderer/*int argc, char **argv*/) {
                 n->train(input, target, bias, learningRate, momentum);
                 addx++;
                 cout << " " << j;
+                allerror += n->error * koef;
             }
             drawgraph(renderer, n, 0);
-            cout << endl << "Error: " << n->error*koef << endl;
+            cout << endl << "Error: " << allerror << " | "<< learningRate <<endl;
+            olderror3 = olderror2;
+            olderror2 = olderror;
+            olderror = allerror;
+            //if(abs(olderror3-olderror)< learningRate)learningRate = learningRate * 0.99;
             n->saveWeights((char*)"c:\\prenos\\NeuralFin\\tslaW.csv");
         }
        // Primeiro teste:
@@ -248,5 +269,112 @@ int main(int argc, char* argv[])
         }
     }
     SDL_Quit();
+    return 0;
+}
+
+#include <stdlib.h>
+#include <stdio.h>
+#include "tensorflow/c/c_api.h"
+
+void NoOpDeallocator(void* data, size_t a, void* b) {}
+
+int mainy(int argc, char* argv[])
+{
+    //********* Read model
+    TF_Graph* Graph = TF_NewGraph();
+    TF_Status* Status = TF_NewStatus();
+
+    TF_SessionOptions* SessionOpts = TF_NewSessionOptions();
+    TF_Buffer* RunOpts = NULL;
+
+    const char* saved_model_dir = "lstm2/";
+    const char* tags = "serve"; // default model serving tag; can change in future
+    int ntags = 1;
+
+    TF_Session* Session = TF_LoadSessionFromSavedModel(SessionOpts, RunOpts, saved_model_dir, &tags, ntags, Graph, NULL, Status);
+    if (TF_GetCode(Status) == TF_OK)
+    {
+        printf("TF_LoadSessionFromSavedModel OK\n");
+    }
+    else
+    {
+        printf("%s", TF_Message(Status));
+    }
+
+    //****** Get input tensor
+    //TODO : need to use saved_model_cli to read saved_model arch
+    int NumInputs = 1;
+    TF_Output* Input = (TF_Output*)malloc(sizeof(TF_Output) * NumInputs);
+
+    TF_Output t0 = { TF_GraphOperationByName(Graph, "serving_default_input_1"), 0 };
+    if (t0.oper == NULL)
+        printf("ERROR: Failed TF_GraphOperationByName serving_default_input_1\n");
+    else
+        printf("TF_GraphOperationByName serving_default_input_1 is OK\n");
+
+    Input[0] = t0;
+
+    //********* Get Output tensor
+    int NumOutputs = 1;
+    TF_Output* Output = (TF_Output*)malloc(sizeof(TF_Output) * NumOutputs);
+
+    TF_Output t2 = { TF_GraphOperationByName(Graph, "StatefulPartitionedCall"), 0 };
+    if (t2.oper == NULL)
+        printf("ERROR: Failed TF_GraphOperationByName StatefulPartitionedCall\n");
+    else
+        printf("TF_GraphOperationByName StatefulPartitionedCall is OK\n");
+
+    Output[0] = t2;
+
+    //********* Allocate data for inputs & outputs
+    TF_Tensor** InputValues = (TF_Tensor**)malloc(sizeof(TF_Tensor*) * NumInputs);
+    TF_Tensor** OutputValues = (TF_Tensor**)malloc(sizeof(TF_Tensor*) * NumOutputs);
+
+    int ndims = 2;
+    int64_t dims[] = { 1,30 };
+    float data[1 * 30];//= {1,1,1,1,1,1,1,1,1,1};
+    for (int i = 0; i < (1 * 30); i++)
+    {
+        data[i] = 1.00;
+    }
+    int ndata = sizeof(float) * 1 * 30;// This is tricky, it number of bytes not number of element
+
+    TF_Tensor* int_tensor = TF_NewTensor(TF_FLOAT, dims, ndims, data, ndata, &NoOpDeallocator, 0);
+    if (int_tensor != NULL)
+    {
+        printf("TF_NewTensor is OK\n");
+    }
+    else
+        printf("ERROR: Failed TF_NewTensor\n");
+
+    InputValues[0] = int_tensor;
+
+    // //Run the Session
+    TF_SessionRun(Session, NULL, Input, InputValues, NumInputs, Output, OutputValues, NumOutputs, NULL, 0, NULL, Status);
+
+    if (TF_GetCode(Status) == TF_OK)
+    {
+        printf("Session is OK\n");
+    }
+    else
+    {
+        printf("%s", TF_Message(Status));
+    }
+
+    // //Free memory
+    TF_DeleteGraph(Graph);
+    TF_DeleteSession(Session, Status);
+    TF_DeleteSessionOptions(SessionOpts);
+    TF_DeleteStatus(Status);
+
+
+    void* buff = TF_TensorData(OutputValues[0]);
+    float* offsets = (float*)buff;
+    printf("Result Tensor :\n");
+    for (int i = 0; i < 10; i++)
+    {
+        printf("%f\n", offsets[i]);
+    }
+
     return 0;
 }

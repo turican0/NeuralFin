@@ -116,7 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\prenos\NeuralFin\tf\include;C:\prenos\NeuralFin\sdl2-2.0.8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\prenos\NeuralFin\tf\include;C:\prenos\NeuralFin\sdl2-2.0.8\include;c:\prenos\NeuralFin\tf2\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -156,6 +156,7 @@
   <ItemGroup>
     <Library Include="sdl2-2.0.8\lib\x64\SDL2.lib" />
     <Library Include="sdl2-2.0.8\lib\x64\SDL2main.lib" />
+    <Library Include="tf2\lib\tensorflow.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
