@@ -144,7 +144,7 @@ C:\prenos\NeuralFin\MiniDNN-master\include\Network.h(463): message : Zobrazit od
           [
               Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
           ]
-C:\prenos\NeuralFin\neurnet.cpp(320): message : Zobrazit odkaz na kompilované vytváření instancí funkce šablona bool MiniDNN::Network::fit<Derived,Derived>(MiniDNN::Optimizer &,const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Derived> &,int,int,int)
+C:\prenos\NeuralFin\neurnet.cpp(322): message : Zobrazit odkaz na kompilované vytváření instancí funkce šablona bool MiniDNN::Network::fit<Derived,Derived>(MiniDNN::Optimizer &,const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Derived> &,int,int,int)
           with
           [
               Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>

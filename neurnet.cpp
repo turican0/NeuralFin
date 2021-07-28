@@ -269,10 +269,12 @@ typedef Eigen::VectorXd Vector;
 int main(int argc, char* argv[])
 {
     // Create two dimensional input data
-    Vector x1 = Vector::LinSpaced(1000, 0.0, 3.15);
+    Vector x1 = Vector::LinSpaced(1000, 0.0, 3.15);//count,begin, end
+    //std::cout << x1;
     Vector x2 = Vector::LinSpaced(1000, 0.0, 3.15);
     // Predictors -- each column is an observation
-    Matrix x = Matrix::Random(2, 1000);
+    Matrix x = Matrix::Random(2, 1000);//two rows,1000 cols
+    std::cout << x;
     x.row(0) = x1;
     x.row(1) = x2;
     // Response variables -- each column is an observation
