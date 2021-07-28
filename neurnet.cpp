@@ -277,6 +277,7 @@ int main(int argc, char* argv[])
     std::cout << x;
     x.row(0) = x1;
     x.row(1) = x2;
+    std::cout << x;
     // Response variables -- each column is an observation
     Matrix y = Matrix::Random(1, 1000);
 
