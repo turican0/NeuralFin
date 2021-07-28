@@ -11,3 +11,5 @@ x64/Debug/neurnet.tlog/neurnet.write.1u.tlog
 *.obj
 x64/Debug/vc142.idb
 x64/Debug/vc142.pdb
+.vs/neurnet/v16/Browse.VC.db
+.vs/neurnet/v16/.suo
