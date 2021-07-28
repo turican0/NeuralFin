@@ -50,7 +50,7 @@ inline Layer* create_layer(const std::map<std::string, int>& map, int index)
         case IDENTITY:
             layer = new FullyConnected<Identity>(in_size, out_size);
             break;
-        case RELU:
+        case RELUX:
             layer = new FullyConnected<ReLU>(in_size, out_size);
             break;
         case SIGMOID:
@@ -83,7 +83,7 @@ inline Layer* create_layer(const std::map<std::string, int>& map, int index)
             layer = new Convolutional<Identity>(in_width, in_height, in_channels,
                                                 out_channels, window_width, window_height);
             break;
-        case RELU:
+        case RELUX:
             layer = new Convolutional<ReLU>(in_width, in_height, in_channels,
                                             out_channels, window_width, window_height);
             break;
@@ -120,7 +120,7 @@ inline Layer* create_layer(const std::map<std::string, int>& map, int index)
             layer = new MaxPooling<Identity>(in_width, in_height, in_channels,
                                              pooling_width, pooling_height);
             break;
-        case RELU:
+        case RELUX:
             layer = new MaxPooling<ReLU>(in_width, in_height, in_channels,
                                          pooling_width, pooling_height);
             break;

@@ -5,10 +5,14 @@
 #include <ostream>
 #include <streambuf>
 #include <ctime> 
+#include <string>
 
-#include "openner/Matrix.hpp"
-#include "openner/utils/Math.hpp"
-#include "openner/NeuralNetwork.hpp"
+#include <iostream>     // std::cout
+#include <sstream>      // std::stringstream, std::stringbuf
+
+//#include "openner/Matrix.hpp"
+//#include "openner/utils/Math.hpp"
+//#include "openner/NeuralNetwork.hpp"
 
 #include "SDL.h"
 
@@ -78,7 +82,7 @@ SDL_bool done = SDL_FALSE;
 int inputsize = 30;
 int outputsize = 1;
 int addx = 0;
-
+/*
 void drawgraph(SDL_Renderer* renderer,NeuralNetwork* n, int pos) {
     SDL_Event event;
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -143,8 +147,10 @@ void drawgraph(SDL_Renderer* renderer,NeuralNetwork* n, int pos) {
         }
     }
 };
+*/
 
-void mainx(SDL_Renderer* renderer/*int argc, char **argv*/) {
+/*
+void mainx(SDL_Renderer* renderer) {
     double olderror3=0;
     double olderror2=0;
     double olderror=0;
@@ -158,30 +164,17 @@ void mainx(SDL_Renderer* renderer/*int argc, char **argv*/) {
         vector<double> input;
         for(int i=0;i< inputsize;i++)
             input.push_back(datavect[i+ addx].open/ koef);
-        /*
-        input.push_back(0.2);
-        input.push_back(0.5);
-        input.push_back(0.1);*/
        
         vector<double> target;
         for (int i = 0; i < outputsize; i++)
             target.push_back(datavect[i + inputsize + addx].open / koef);
-        /*target.push_back(0.2); 
-        target.push_back(0.5); 
-        target.push_back(0.9);*/
     
-        /*double learningRate  = 0.05;
-        double momentum      = 1;
-        double bias          = 1;*/
         
         double learningRate = 0.01;
         double momentum = 1;
         double bias = 1;
 
         vector<int> topology;
-        /*topology.push_back(650);
-        topology.push_back(213);
-        topology.push_back(650);*/
 
         topology.push_back(65);
         topology.push_back(21);
@@ -217,22 +210,11 @@ void mainx(SDL_Renderer* renderer/*int argc, char **argv*/) {
             n->saveWeights((char*)"c:\\prenos\\NeuralFin\\tslaW.csv");
         }
        // Primeiro teste:
-/*     for (int i = 0; i < 100; i++) {
-        Matrix *a = new Matrix(100, 100, true);
-        Matrix *b = new Matrix(100, 100, true);
-        Matrix *c = new Matrix(a->getNumRows(), b->getNumRows(), false);
-        cout << "Multiplying matrix at index " << i << endl;
-        utils::Math::multiplyMatrix(a, b, c);
-
-        delete a;
-        delete b;
-        delete c;
-    } */
 
     //return 0;
 }
-
-int main(int argc, char* argv[])
+*/
+int mainz(int argc, char* argv[])
 {
     if (SDL_Init(SDL_INIT_VIDEO) == 0) {
         SDL_Window* window = NULL;
@@ -240,7 +222,7 @@ int main(int argc, char* argv[])
 
         if (SDL_CreateWindowAndRenderer(640, 480, 0, &window, &renderer) == 0) {
             //SDL_bool done = SDL_FALSE;
-            mainx(renderer);
+            //mainx(renderer);
             while (!done) {
                 SDL_Event event;
 
@@ -274,107 +256,79 @@ int main(int argc, char* argv[])
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "tensorflow/c/c_api.h"
 
 void NoOpDeallocator(void* data, size_t a, void* b) {}
 
-int mainy(int argc, char* argv[])
+#include <MiniDNN.h>
+using namespace MiniDNN;
+
+typedef Eigen::MatrixXd Matrix;
+typedef Eigen::VectorXd Vector;
+
+
+int main(int argc, char* argv[])
 {
-    //********* Read model
-    TF_Graph* Graph = TF_NewGraph();
-    TF_Status* Status = TF_NewStatus();
+    // Create two dimensional input data
+    Vector x1 = Vector::LinSpaced(1000, 0.0, 3.15);
+    Vector x2 = Vector::LinSpaced(1000, 0.0, 3.15);
+    // Predictors -- each column is an observation
+    Matrix x = Matrix::Random(2, 1000);
+    x.row(0) = x1;
+    x.row(1) = x2;
+    // Response variables -- each column is an observation
+    Matrix y = Matrix::Random(1, 1000);
 
-    TF_SessionOptions* SessionOpts = TF_NewSessionOptions();
-    TF_Buffer* RunOpts = NULL;
-
-    const char* saved_model_dir = "lstm2/";
-    const char* tags = "serve"; // default model serving tag; can change in future
-    int ntags = 1;
-
-    TF_Session* Session = TF_LoadSessionFromSavedModel(SessionOpts, RunOpts, saved_model_dir, &tags, ntags, Graph, NULL, Status);
-    if (TF_GetCode(Status) == TF_OK)
+    // Fill the output for the training
+    for (int i = 0; i < y.cols(); i++)
     {
-        printf("TF_LoadSessionFromSavedModel OK\n");
-    }
-    else
-    {
-        printf("%s", TF_Message(Status));
+        y(0, i) = std::pow(x(0, i), 2) + std::pow(x(1, i), 2);
     }
 
-    //****** Get input tensor
-    //TODO : need to use saved_model_cli to read saved_model arch
-    int NumInputs = 1;
-    TF_Output* Input = (TF_Output*)malloc(sizeof(TF_Output) * NumInputs);
+    // Fill the output for the test
+    Matrix xt = (Matrix::Random(2, 1000).array() + 1.0) / 2 * 3.15;
+    Matrix yt = Matrix::Random(1, 1000);
 
-    TF_Output t0 = { TF_GraphOperationByName(Graph, "serving_default_input_1"), 0 };
-    if (t0.oper == NULL)
-        printf("ERROR: Failed TF_GraphOperationByName serving_default_input_1\n");
-    else
-        printf("TF_GraphOperationByName serving_default_input_1 is OK\n");
-
-    Input[0] = t0;
-
-    //********* Get Output tensor
-    int NumOutputs = 1;
-    TF_Output* Output = (TF_Output*)malloc(sizeof(TF_Output) * NumOutputs);
-
-    TF_Output t2 = { TF_GraphOperationByName(Graph, "StatefulPartitionedCall"), 0 };
-    if (t2.oper == NULL)
-        printf("ERROR: Failed TF_GraphOperationByName StatefulPartitionedCall\n");
-    else
-        printf("TF_GraphOperationByName StatefulPartitionedCall is OK\n");
-
-    Output[0] = t2;
-
-    //********* Allocate data for inputs & outputs
-    TF_Tensor** InputValues = (TF_Tensor**)malloc(sizeof(TF_Tensor*) * NumInputs);
-    TF_Tensor** OutputValues = (TF_Tensor**)malloc(sizeof(TF_Tensor*) * NumOutputs);
-
-    int ndims = 2;
-    int64_t dims[] = { 1,30 };
-    float data[1 * 30];//= {1,1,1,1,1,1,1,1,1,1};
-    for (int i = 0; i < (1 * 30); i++)
+    for (int i = 0; i < yt.cols(); i++)
     {
-        data[i] = 1.00;
-    }
-    int ndata = sizeof(float) * 1 * 30;// This is tricky, it number of bytes not number of element
-
-    TF_Tensor* int_tensor = TF_NewTensor(TF_FLOAT, dims, ndims, data, ndata, &NoOpDeallocator, 0);
-    if (int_tensor != NULL)
-    {
-        printf("TF_NewTensor is OK\n");
-    }
-    else
-        printf("ERROR: Failed TF_NewTensor\n");
-
-    InputValues[0] = int_tensor;
-
-    // //Run the Session
-    TF_SessionRun(Session, NULL, Input, InputValues, NumInputs, Output, OutputValues, NumOutputs, NULL, 0, NULL, Status);
-
-    if (TF_GetCode(Status) == TF_OK)
-    {
-        printf("Session is OK\n");
-    }
-    else
-    {
-        printf("%s", TF_Message(Status));
+        yt(0, i) = std::pow(xt(0, i), 2) + std::pow(xt(1, i), 2);
     }
 
-    // //Free memory
-    TF_DeleteGraph(Graph);
-    TF_DeleteSession(Session, Status);
-    TF_DeleteSessionOptions(SessionOpts);
-    TF_DeleteStatus(Status);
-
-
-    void* buff = TF_TensorData(OutputValues[0]);
-    float* offsets = (float*)buff;
-    printf("Result Tensor :\n");
-    for (int i = 0; i < 10; i++)
-    {
-        printf("%f\n", offsets[i]);
-    }
-
+    // Construct a network object
+    Network net;
+    // Create three layers
+    // Layer 1 -- FullyConnected, input size 2x200
+    Layer* layer1 = new FullyConnected<Identity>(2, 200);
+    // Layer 2 -- max FullyConnected, input size 200x200
+    Layer* layer2 = new FullyConnected<ReLU>(200, 200);
+    // Layer 4 -- fully connected, input size 200x1
+    Layer* layer3 = new FullyConnected<Identity>(200, 1);
+    // Add layers to the network object
+    net.add_layer(layer1);
+    net.add_layer(layer2);
+    net.add_layer(layer3);
+    // Set output layer
+    net.set_output(new RegressionMSE());
+    // Create optimizer object
+    Adam opt;
+    opt.m_lrate = 0.01;
+    // (Optional) set callback function object
+    VerboseCallback callback;
+    net.set_callback(callback);
+    // Initialize parameters with N(0, 0.01^2) using random seed 123
+    net.init(0, 0.01, 000);
+    // Fit the model with a batch size of 100, running 10 epochs with random seed 123
+    net.fit(opt, x, y, 1000, 1000, 000);
+    // Obtain prediction -- each column is an observation
+    Eigen::MatrixXd pred = net.predict(xt);
+    // Export the network to the NetFolder folder with prefix NetFile
+    net.export_net("./NetFolder/", "NetFile");
+    // Create a new network
+    Network netFromFile;
+    // Read structure and paramaters from file
+    netFromFile.read_net("./NetFolder/", "NetFile");
+    // Test that they give the same prediction
+    std::cout << (pred - netFromFile.predict(xt)).norm() << std::endl;
+    // Layer objects will be freed by the network object,
+    // so do not manually delete them
     return 0;
 }

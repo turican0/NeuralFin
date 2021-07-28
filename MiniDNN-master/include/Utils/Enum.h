@@ -38,7 +38,7 @@ inline int layer_id(const std::string& type)
 enum ACTIVATION_ENUM
 {
     IDENTITY = 0,
-    RELU,
+    RELUX,
     SIGMOID,
     SOFTMAX,
     TANH,
@@ -51,7 +51,7 @@ inline int activation_id(const std::string& type)
     if (type == "Identity")
         return IDENTITY;
     if (type == "ReLU")
-        return RELU;
+        return RELUX;
     if (type == "Sigmoid")
         return SIGMOID;
     if (type == "Softmax")
@@ -64,6 +64,7 @@ inline int activation_id(const std::string& type)
     throw std::invalid_argument("[function activation_id]: Activation is not of a known type");
     return -1;
 }
+
 
 // Enumerations for output layers
 enum OUTPUT_ENUM
@@ -86,6 +87,8 @@ inline int output_id(const std::string& type)
     throw std::invalid_argument("[function output_id]: Output is not of a known type");
     return -1;
 }
+
+
 
 
 } // namespace internal

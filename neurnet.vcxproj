@@ -116,7 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\prenos\NeuralFin\tf\include;C:\prenos\NeuralFin\sdl2-2.0.8\include;c:\prenos\NeuralFin\tf2\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\prenos\NeuralFin\sdl2-2.0.8\include;C:\prenos\NeuralFin\MiniDNN-master\include;C:\prenos\NeuralFin\eigen-3.3.9;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,16 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Layer.cpp" />
-    <ClCompile Include="Matrix.cpp" />
-    <ClCompile Include="neural_network\backPropagation.cpp" />
-    <ClCompile Include="neural_network\feedForward.cpp" />
-    <ClCompile Include="neural_network\NeuralNetwork.cpp" />
-    <ClCompile Include="neural_network\setErrors.cpp" />
-    <ClCompile Include="neural_network\train.cpp" />
     <ClCompile Include="neurnet.cpp" />
-    <ClCompile Include="Neuron.cpp" />
-    <ClCompile Include="utils\Math.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="sdl2-2.0.8\lib\x64\SDL2.lib" />
