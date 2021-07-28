@@ -13,3 +13,8 @@ x64/Debug/vc142.idb
 x64/Debug/vc142.pdb
 .vs/neurnet/v16/Browse.VC.db
 .vs/neurnet/v16/.suo
+.vs/neurnet/v16/ipch/AutoPCH/7debf1661490f2c7/NEURNET.ipch
+.vs/neurnet/v16/Browse.VC.db-shm
+.vs/neurnet/v16/Browse.VC.db-wal
+.vs/neurnet/v16/Browse.VC.opendb
+*.ipch
