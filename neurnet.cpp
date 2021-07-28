@@ -273,12 +273,12 @@ int main(int argc, char* argv[])
     //std::cout << x1;
     Vector x2 = Vector::LinSpaced(1000, 0.0, 3.15);
     // Predictors -- each column is an observation
-    Matrix x = Matrix::Random(2, 1000);//two rows,1000 cols
+    Matrix x = Matrix::Random(2, 1000);//two rows,1000 cols //input
     std::cout << x;
     x.row(0) = x1;
     x.row(1) = x2;
     std::cout << x;
-    // Response variables -- each column is an observation
+    // Response variables -- each column is an observation // output
     Matrix y = Matrix::Random(1, 1000);
 
     // Fill the output for the training
