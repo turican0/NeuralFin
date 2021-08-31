@@ -66,6 +66,7 @@ void parseCSV(char* file) {
             datavect.push_back(data);
         }
         x++;
+        //if (x > 6)break;
     }
 };
 
@@ -131,7 +132,7 @@ int mainz(int argc, char **argv) {
 
 SDL_bool done = SDL_FALSE;
 
-int inputsize = 2;
+int inputsize = 3;
 int outputsize = 1;
 int countoff = 4;// 4;
 int cols;
@@ -191,7 +192,8 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos) {
     vector<double> input;
     for (int k = 0; k < inputsize; k++)
         input.push_back(0);
-    for (int posi = 0; posi < datavect.size() - /*outputsize -*/ inputsize; posi++)
+    //for (int posi = 0; posi < datavect.size() - outputsize - inputsize; posi++)
+    for (int posi = 0; posi < datavect.size() - inputsize; posi++)
     {
         for (int k = 0; k < inputsize; k++)
             input[k] = datavect[k + posi].open / koef;
@@ -201,7 +203,6 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos) {
         for (int i = 0; i < outputsize; i++) {
             double y = (*output)[i + posi];
             int x1 = ((double)(i + posi + inputsize) / datavect.size()) * rendx;
-            //int y1 = rendy - (y * rendy)/* * 3.0*/;
             int y1 = rendy - (y / (koef / 3) * rendy);
             if (i > 0)
                 SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
@@ -239,7 +240,7 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos) {
             oldy = y1;
         }
     }
-
+    
 
     //SDL_RenderDrawLine(renderer, 320, 200, 300, 240);
     //SDL_RenderDrawLine(renderer, 300, 240, 340, 240);
