@@ -214,7 +214,191 @@ void mainx(SDL_Renderer* renderer) {
     //return 0;
 }
 */
-int mainz(int argc, char* argv[])
+
+#include <stdlib.h>
+#include <stdio.h>
+
+void NoOpDeallocator(void* data, size_t a, void* b) {}
+
+#include <MiniDNN.h>
+using namespace MiniDNN;
+
+typedef Eigen::MatrixXd Matrix;
+typedef Eigen::VectorXd Vector;
+
+void drawgraph(SDL_Renderer* renderer, Matrix locnetwork, int pos) {
+    SDL_Event event;    
+    int rendx = 640;
+    int rendy = 480;
+    int oldx, oldy;
+    if (pos == -1)
+    {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+        SDL_RenderClear(renderer);
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+        for (int i = 0; i < datavect.size(); i++)
+        {
+            int x1 = ((double)i / datavect.size()) * rendx;
+            int y1 = rendy - (datavect[i].open / (koef / 3) * rendy);
+            if (i > 0)
+                SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
+            oldx = x1;
+            oldy = y1;
+        }
+    }
+    vector<double> input;
+    for (int k = 0; k < inputsize; k++)
+        input.push_back(0);
+    //for (int posi = 0; posi < datavect.size() - outputsize - inputsize; posi++)
+    if (pos > -1)
+    {
+        for (int k = 0; k < inputsize; k++)
+            input[k] = datavect[k + pos].open / koef;
+
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+
+        
+        for (int i = 0; i < outputsize; i++) {
+            double y = locnetwork(i, 0/*posi*/);
+            //double y = 0;//*locnetwork->at(0,0);// outputNeurons.at(i)->getActivatedVal();
+            int x1 = ((double)(i + pos + inputsize) / datavect.size()) * rendx;
+            int y1 = rendy - (y * rendy) * 3.0;
+            if (i > 0)
+                SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
+            else
+            {
+                int prex1 = ((double)(pos + inputsize - 1) / datavect.size()) * rendx;
+                int prey1 = rendy - (datavect[pos + inputsize - 1].open / (koef / 3) * rendy);
+                //int prex1 = ((double)posi / datavect.size()) * rendx;
+                //int prey1 = rendy - (datavect[posi].open / (koef / 3) * rendy);
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+                SDL_RenderDrawLine(renderer, prex1, prey1, x1, y1);
+                SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+            }
+            oldx = x1;
+            oldy = y1;
+        }
+    }
+
+
+    //SDL_RenderDrawLine(renderer, 320, 200, 300, 240);
+    //SDL_RenderDrawLine(renderer, 300, 240, 340, 240);
+    //SDL_RenderDrawLine(renderer, 340, 240, 320, 200);
+    SDL_RenderPresent(renderer);
+
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            done = SDL_TRUE;
+        }
+    }
+};
+
+
+int mainx(SDL_Renderer* renderer)
+{
+    parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
+    findKoef();
+
+    int countlines = datavect.size() - inputsize - outputsize;
+    // Create two dimensional input data
+    //Vector x1 = Vector::LinSpaced(1000, 0.0, 3.15);//count,begin, end
+    //std::cout << x1;
+    //Vector x2 = Vector::LinSpaced(1000, 0.0, 3.15);
+    // Predictors -- each column is an observation
+    //Matrix x = Matrix::Random(2, 1000);//two rows,1000 cols //input
+    Matrix x = Matrix::Random(inputsize, countlines);//two rows,1000 cols //input
+   // Vector x1 = Vector::LinSpaced(countlines, 0.0, 3.15);//count,begin, end
+    //x.row(0) = x1;
+    //std::cout << x;
+    //x.row(0) = x1;
+    //x.row(1) = x2;
+    for (int j = 0; j < inputsize; j++)    
+    {
+        for (int i = 0; i < countlines; i++)
+        {
+           x(j, i) = datavect[i].open/koef;
+        }
+    }
+
+    //drawgraph(renderer, 0);
+
+    //std::cout << x;
+    // Response variables -- each column is an observation // output
+    Matrix y = Matrix::Random(outputsize, countlines);
+
+    // Fill the output for the training    
+    for (int j = 0; j < outputsize; j++)
+    for (int i = 0; i < y.cols(); i++)
+    {
+        y(j, i) = datavect[i+j+ inputsize].open/koef;
+        //y(0, i) = std::pow(x(0, i), 2) + std::pow(x(1, i), 2);        
+    }
+
+    // Construct a network object
+    Network net;
+    // Create three layers
+    // Layer 1 -- FullyConnected, input size 2x200
+    Layer* layer1 = new FullyConnected<Identity>(inputsize, 200);
+    // Layer 2 -- max FullyConnected, input size 200x200
+    Layer* layer2 = new FullyConnected<Tanh>(200, 200);
+    Layer* layer3 = new FullyConnected<Tanh>(200, 200);
+    Layer* layer4 = new FullyConnected<Tanh>(200, 200);
+    // Layer 4 -- fully connected, input size 200x1
+    Layer* layer5 = new FullyConnected<Identity>(200, outputsize);
+    // Add layers to the network object
+    net.add_layer(layer1);
+    net.add_layer(layer2);
+    net.add_layer(layer3);
+    net.add_layer(layer4);
+    net.add_layer(layer5);
+    // Set output layer
+    net.set_output(new RegressionMSE());
+    // Create optimizer object
+    Adam opt;
+    opt.m_lrate = 0.00004;
+    // (Optional) set callback function object
+    VerboseCallback callback;
+    net.set_callback(callback);
+    // Initialize parameters with N(0, 0.01^2) using random seed 123
+    //net.init(0, 0.01, 000);
+    net.init(0, 0.0001, 123);
+    // Fit the model with a batch size of 100, running 10 epochs with random seed 123
+    //net.fit(opt, x, y, 1000, 1000, 000);//fit(opt, inputs,outputs,batchsize,epoch,seed)
+
+    net.read_net("./NetFolder/", "NetFile");
+    for (int i = 0; i < 1000; i++)
+    {
+        net.fit(opt, x, y, 1/*countlines*/, 1, 123, drawgraph, renderer);//fit(opt, inputs,outputs,batchsize,epoch,seed)
+        net.export_net("./NetFolder/", "NetFile");
+        cout << " "<< opt.m_lrate << endl;
+        opt.m_lrate *= 0.9;
+    }
+    //---------------------------------
+    
+    // Fill the output for the test
+    Matrix xt = (Matrix::Random(inputsize, countlines).array() + 1.0) / 2 * 3.15;
+    Matrix yt = Matrix::Random(1, countlines);
+
+    for (int i = 0; i < yt.cols(); i++)
+    {
+        yt(0, i) = std::pow(xt(0, i), 2) + std::pow(xt(1, i), 2);
+    }
+    // Obtain prediction -- each column is an observation
+    Eigen::MatrixXd pred = net.predict(xt);
+    // Export the network to the NetFolder folder with prefix NetFile
+    net.export_net("./NetFolder/", "NetFile");
+    // Create a new network
+    Network netFromFile;
+    // Read structure and paramaters from file
+    netFromFile.read_net("./NetFolder/", "NetFile");
+    // Test that they give the same prediction
+    std::cout << (pred - netFromFile.predict(xt)).norm() << std::endl;
+    // Layer objects will be freed by the network object,
+    // so do not manually delete them
+    return 0;
+}
+
+int main(int argc, char* argv[])
 {
     if (SDL_Init(SDL_INIT_VIDEO) == 0) {
         SDL_Window* window = NULL;
@@ -222,7 +406,7 @@ int mainz(int argc, char* argv[])
 
         if (SDL_CreateWindowAndRenderer(640, 480, 0, &window, &renderer) == 0) {
             //SDL_bool done = SDL_FALSE;
-            //mainx(renderer);
+            mainx(renderer);
             while (!done) {
                 SDL_Event event;
 
@@ -254,84 +438,3 @@ int mainz(int argc, char* argv[])
     return 0;
 }
 
-#include <stdlib.h>
-#include <stdio.h>
-
-void NoOpDeallocator(void* data, size_t a, void* b) {}
-
-#include <MiniDNN.h>
-using namespace MiniDNN;
-
-typedef Eigen::MatrixXd Matrix;
-typedef Eigen::VectorXd Vector;
-
-
-int main(int argc, char* argv[])
-{
-    // Create two dimensional input data
-    Vector x1 = Vector::LinSpaced(1000, 0.0, 3.15);//count,begin, end
-    //std::cout << x1;
-    Vector x2 = Vector::LinSpaced(1000, 0.0, 3.15);
-    // Predictors -- each column is an observation
-    Matrix x = Matrix::Random(2, 1000);//two rows,1000 cols //input
-    std::cout << x;
-    x.row(0) = x1;
-    x.row(1) = x2;
-    std::cout << x;
-    // Response variables -- each column is an observation // output
-    Matrix y = Matrix::Random(1, 1000);
-
-    // Fill the output for the training
-    for (int i = 0; i < y.cols(); i++)
-    {
-        y(0, i) = std::pow(x(0, i), 2) + std::pow(x(1, i), 2);
-    }
-
-    // Fill the output for the test
-    Matrix xt = (Matrix::Random(2, 1000).array() + 1.0) / 2 * 3.15;
-    Matrix yt = Matrix::Random(1, 1000);
-
-    for (int i = 0; i < yt.cols(); i++)
-    {
-        yt(0, i) = std::pow(xt(0, i), 2) + std::pow(xt(1, i), 2);
-    }
-
-    // Construct a network object
-    Network net;
-    // Create three layers
-    // Layer 1 -- FullyConnected, input size 2x200
-    Layer* layer1 = new FullyConnected<Identity>(2, 200);
-    // Layer 2 -- max FullyConnected, input size 200x200
-    Layer* layer2 = new FullyConnected<ReLU>(200, 200);
-    // Layer 4 -- fully connected, input size 200x1
-    Layer* layer3 = new FullyConnected<Identity>(200, 1);
-    // Add layers to the network object
-    net.add_layer(layer1);
-    net.add_layer(layer2);
-    net.add_layer(layer3);
-    // Set output layer
-    net.set_output(new RegressionMSE());
-    // Create optimizer object
-    Adam opt;
-    opt.m_lrate = 0.01;
-    // (Optional) set callback function object
-    VerboseCallback callback;
-    net.set_callback(callback);
-    // Initialize parameters with N(0, 0.01^2) using random seed 123
-    net.init(0, 0.01, 000);
-    // Fit the model with a batch size of 100, running 10 epochs with random seed 123
-    net.fit(opt, x, y, 1000, 1000, 000);
-    // Obtain prediction -- each column is an observation
-    Eigen::MatrixXd pred = net.predict(xt);
-    // Export the network to the NetFolder folder with prefix NetFile
-    net.export_net("./NetFolder/", "NetFile");
-    // Create a new network
-    Network netFromFile;
-    // Read structure and paramaters from file
-    netFromFile.read_net("./NetFolder/", "NetFile");
-    // Test that they give the same prediction
-    std::cout << (pred - netFromFile.predict(xt)).norm() << std::endl;
-    // Layer objects will be freed by the network object,
-    // so do not manually delete them
-    return 0;
-}

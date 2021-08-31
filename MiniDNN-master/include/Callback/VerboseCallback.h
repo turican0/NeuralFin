@@ -22,16 +22,16 @@ class VerboseCallback: public Callback
         void post_training_batch(const Network* net, const Matrix& x, const Matrix& y)
         {
             const Scalar loss = net->get_output()->loss();
-            std::cout << "[Epoch " << m_epoch_id << ", batch " << m_batch_id << "] Loss = "
-                      << loss << std::endl;
+            //std::cout << "[Epoch " << m_epoch_id << ", batch " << m_batch_id << "] Loss = " << loss << std::endl;
+            std::cout << m_batch_id << " ";
         }
 
         void post_training_batch(const Network* net, const Matrix& x,
                                  const IntegerVector& y)
         {
             Scalar loss = net->get_output()->loss();
-            std::cout << "[Epoch " << m_epoch_id << ", batch " << m_batch_id << "] Loss = "
-                      << loss << std::endl;
+            //std::cout << "[Epoch " << m_epoch_id << ", batch " << m_batch_id << "] Loss = " << loss << std::endl;
+            std::cout << m_batch_id << " ";
         }
 };
 

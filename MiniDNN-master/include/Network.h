@@ -14,6 +14,8 @@
 #include "Utils/IO.h"
 #include "Utils/Factory.h"
 
+#include "SDL.h"
+
 namespace MiniDNN
 {
 
@@ -417,6 +419,10 @@ class Network
             this->set_parameters(param);
         }
 
+        /*void testx(std::vector<Matrix> y_batches) {
+        
+        };*/
+
         ///
         /// Fit the model based on the given data
         ///
@@ -431,7 +437,7 @@ class Network
         template <typename DerivedX, typename DerivedY>
         bool fit(Optimizer& opt, const Eigen::MatrixBase<DerivedX>& x,
                  const Eigen::MatrixBase<DerivedY>& y,
-                 int batch_size, int epoch, int seed = -1)
+                 int batch_size, int epoch, int seed/* = -1*/, void(*runfnc)(SDL_Renderer*, Matrix,int), SDL_Renderer* renderer)
         {
             // We do not directly use PlainObjectX since it may be row-majored if x is passed as mat.transpose()
             // We want to force XType and YType to be column-majored
@@ -465,6 +471,8 @@ class Network
             m_callback->m_nbatch = nbatch;
             m_callback->m_nepoch = epoch;
 
+            runfnc(renderer, m_layers[m_layers.size() - 1]->output(), -1);
+
             // Iterations on the whole data set
             for (int k = 0; k < epoch; k++)
             {
@@ -476,10 +484,15 @@ class Network
                     m_callback->m_batch_id = i;
                     m_callback->pre_training_batch(this, x_batches[i], y_batches[i]);
                     this->forward(x_batches[i]);
+                    
+                    //cout << m_layers[m_layers.size()-1]->output();
+                    runfnc(renderer, m_layers[m_layers.size() - 1]->output(),i);
+
                     this->backprop(x_batches[i], y_batches[i]);
                     this->update(opt);
-                    m_callback->post_training_batch(this, x_batches[i], y_batches[i]);
-                }
+                    m_callback->post_training_batch(this, x_batches[i], y_batches[i]);                    
+                }               
+                
             }
 
             return true;
@@ -513,7 +526,7 @@ class Network
         {
             bool created = internal::create_directory(folder);
             if (!created)
-                throw std::runtime_error("[class Network]: Folder creation failed");
+                ;// throw std::runtime_error("[class Network]: Folder creation failed");
 
             MetaInfo map = this->get_meta_info();
             internal::write_map(folder + "/" + filename, map);
