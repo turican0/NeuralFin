@@ -9,6 +9,9 @@
 
 #include <iostream>
 #include <sstream>
+
+#include <chrono>
+#include <thread>
 //#include <map>
 
 //#include "openner/Matrix.hpp"
@@ -132,7 +135,7 @@ int mainz(int argc, char **argv) {
 
 SDL_bool done = SDL_FALSE;
 
-int inputsize = 3;
+int inputsize = 15;
 int outputsize = 1;
 int countoff = 4;// 4;
 int cols;
@@ -287,13 +290,14 @@ double fRand(double fMin, double fMax)
 }
 
 void detectbest(int index,vector<double>* input, vector<double>* output, vector<double>* weight, vector<double>* addkoef) {    
-    for (int i = 0; i < rows; i++) {
+    //for (int i = 0; i < rows; i++)
+    {
         for (int j = 0; j < cols; j++)
         {
             //for (int k = 0; k < countoff; k++)
             int k = index;
             {                
-                double locrand = fRand(0, 5);
+                double locrand = fRand(0, 2);
                 double origweight = igetw(weight, j, k);//(*weight)[k];
                 compoutputs(input, output, weight);
                 double geterror = detecterror(output);
@@ -310,18 +314,28 @@ void detectbest(int index,vector<double>* input, vector<double>* output, vector<
                 {
                     ipuschw(weight, j, k, origweight);
                     ipuscha(addkoef, j, k, 0.51 * locrand * igeta(addkoef, j, k));
+                    //cout << ":0 " << geterror << endl;
+                    //cout << geterror << ":" << geterror1 << ":" << geterror2 <<endl;
                 }
                 else if (geterror1 < geterror2)
                 {
                     ipuschw(weight, j, k, origweight + igeta(addkoef, j, k));
                     ipuscha(addkoef, j, k, 1.99 * locrand * igeta(addkoef, j, k));
+                    //cout << ":1 " << geterror1 << endl;
+                    //cout << geterror << ":" << geterror1 << ":" << geterror2 << endl;
                 }
                 else
                 {
                     ipuschw(weight, j, k, origweight - igeta(addkoef, j, k));
                     ipuscha(addkoef, j, k, 1.99 * locrand * igeta(addkoef, j, k));
+                    //cout << ":2 " << geterror2 << endl;
+                    //cout << geterror << ":" << geterror1 << ":" << geterror2 << endl;
                 }
             }
+            /*
+            std::this_thread::sleep_for(std::chrono::nanoseconds(10));
+            std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::seconds(1));
+            */
             //(*output)[i] += iget(input, i, j, k) * igetw(weight, i, j, k);
         }
     }
