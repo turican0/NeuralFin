@@ -52,7 +52,9 @@ std::istream& operator>>(std::istream& ist, data_t& data)
 }
 
 std::vector<data_t> datavect;
+std::vector<data_t> dataother[100];
 
+int countother=0;
 void parseCSV(char* file) {
     std::ifstream  data(file);
     std::string line;
@@ -71,6 +73,27 @@ void parseCSV(char* file) {
         x++;
         //if (x > 6)break;
     }
+};
+
+void parseCSVother(char* file) {
+    std::ifstream  data(file);
+    std::string line;
+    bool first = true;
+    int x = 0;
+    while ((std::getline(data, line))/*&&(x<15)*/)
+    {
+        data_t data;
+        std::stringstream lineStream(line);
+        if (first)first = false;
+        else
+        {
+            lineStream >> data;            
+            dataother[countother].push_back(data);
+        }
+        x++;
+        //if (x > 6)break;
+    }
+    countother++;
 };
 
 double koef = 1;
@@ -313,7 +336,7 @@ void detectbest(int index,vector<double>* input, vector<double>* output, vector<
                 if ((geterror < geterror1) && (geterror < geterror2))
                 {
                     ipuschw(weight, j, k, origweight);
-                    ipuscha(addkoef, j, k, 0.51 * locrand * igeta(addkoef, j, k));
+                    ipuscha(addkoef, j, k, 0.91 * locrand * igeta(addkoef, j, k));
                     //cout << ":0 " << geterror << endl;
                     //cout << geterror << ":" << geterror1 << ":" << geterror2 <<endl;
                 }
@@ -386,7 +409,10 @@ void cleanweights(int index,vector<double>* weight)
 
 int mainx(SDL_Renderer* renderer) {
 
-    parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
+    parseCSV((char*)"c:\\prenos\\NeuralFin\\TSLA.csv");
+    parseCSVother((char*)"c:\\prenos\\NeuralFin\\GOOG.csv");
+    parseCSVother((char*)"c:\\prenos\\NeuralFin\\MSFT.csv");
+    parseCSVother((char*)"c:\\prenos\\NeuralFin\\AMZN.csv");
 
     findKoef();
 
@@ -435,6 +461,40 @@ int mainx(SDL_Renderer* renderer) {
         }
     }
     //init
+
+    //init2
+    for (int oo = 0; oo < countother; oo++)
+    for (int i = 0; i < rows; i++)
+    {
+        //if (i == 62)
+        //   cout << i;
+        for (int j = 0; j < inputsize; j++)
+        {
+            ipusch(&input, i, j, 0, dataother[oo][i + j].open);
+            ipusch(&input, i, j, 1, dataother[oo][i + j].open * dataother[oo][i + j].open);
+            ipusch(&input, i, j, 2, sqrt(abs(dataother[oo][i + j].open)));
+            ipusch(&input, i, j, 3, log(1 + abs(dataother[oo][i + j].open)));
+        }
+        for (int j = 0; j < inputsize - 1; j++)
+        {
+            double der1 = dataother[oo][i + j].open + dataother[oo][i + j + 1].open;
+            ipusch(&input, i, j + inputsize, 0, der1);
+            ipusch(&input, i, j + inputsize, 1, der1 * der1);
+            ipusch(&input, i, j + inputsize, 2, sqrt(abs(der1)));
+            ipusch(&input, i, j + inputsize, 3, log(1 + abs(der1)));
+        }
+        for (int j = 0; j < inputsize - 2; j++)
+        {
+            double der1 = dataother[oo][i + j].open + dataother[oo][i + j + 1].open;
+            double der2 = dataother[oo][i + j + 1].open + dataother[oo][i + j + 2].open;
+            double der3 = der1 - der2;
+            ipusch(&input, i, j + inputsize * 2 - 1, 0, der3);
+            ipusch(&input, i, j + inputsize * 2 - 1, 1, der3 * der3);
+            ipusch(&input, i, j + inputsize * 2 - 1, 2, sqrt(abs(der3)));
+            ipusch(&input, i, j + inputsize * 2 - 1, 3, log(1 + abs(der3)));
+        }
+    }
+    //init2
 
     cleanweights(0, &weight);
     cleanweights(1, &weight);
