@@ -7,8 +7,9 @@
 #include <ctime> 
 #include <string>
 
-#include <iostream>     // std::cout
-#include <sstream>      // std::stringstream, std::stringbuf
+#include <iostream>
+#include <sstream>
+//#include <map>
 
 //#include "openner/Matrix.hpp"
 //#include "openner/utils/Math.hpp"
@@ -53,7 +54,8 @@ void parseCSV(char* file) {
     std::ifstream  data(file);
     std::string line;
     bool first = true;
-    while (std::getline(data, line))
+    int x = 0;
+    while ((std::getline(data, line))/*&&(x<15)*/)
     {
         data_t data;
         std::stringstream lineStream(line);
@@ -63,134 +65,54 @@ void parseCSV(char* file) {
             lineStream >> data;
             datavect.push_back(data);
         }
+        x++;
     }
 };
 
-double koef=1;
+double koef = 1;
 
 void findKoef() {
-    double maxx=0;
+    double maxx = 0;
     for (data_t actdata : datavect)
         /*(x in datavect)*/ {
         if (actdata.open > maxx)maxx = actdata.open;
     }
-    koef = maxx*3;
+    koef = maxx * 3;
 };
-
-SDL_bool done = SDL_FALSE;
-
-int inputsize = 30;
-int outputsize = 1;
-int addx = 0;
 /*
-void drawgraph(SDL_Renderer* renderer,NeuralNetwork* n, int pos) {
-    SDL_Event event;
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-    int rendx = 640;
-    int rendy = 480;
-    int oldx, oldy;
-
-    for (int i=0;i<datavect.size();i++)
-    {
-        int x1 = ((double)i / datavect.size()) * rendx;
-        int y1 = rendy-(datavect[i].open / (koef/3) * rendy);
-        if(i>0)
-            SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
-        oldx = x1;
-        oldy = y1;
-    }
-    vector<double> input;
-    for (int k = 0; k < inputsize; k++)
-        input.push_back(0);
-    for (int posi = 0; posi <datavect.size()- outputsize- inputsize; posi++)
-    {
-        for (int k = 0; k < inputsize; k++)
-            input[k]=datavect[k + posi].open / koef;
-        n->test(input);
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
-
-        int outputLayerIndex = n->layers.size() - 1;
-        vector<Neuron*> outputNeurons = n->layers.at(outputLayerIndex)->getNeurons();
-
-        for (int i = 0; i < outputsize; i++) {
-            double y = outputNeurons.at(i)->getActivatedVal();
-            int x1 = ((double)(i+posi+ inputsize) / datavect.size()) * rendx;
-            int y1 = rendy - (y * rendy)*3.0;
-            if (i > 0)
-                SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
-            else
-            {
-                int prex1 = ((double)(posi + inputsize-1) / datavect.size()) * rendx;
-                int prey1 = rendy - (datavect[posi + inputsize - 1].open / (koef / 3) * rendy);
-                //int prex1 = ((double)posi / datavect.size()) * rendx;
-                //int prey1 = rendy - (datavect[posi].open / (koef / 3) * rendy);
-                SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
-                SDL_RenderDrawLine(renderer, prex1, prey1, x1, y1);
-                SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
-            }
-            oldx = x1;
-            oldy = y1;
-        }
-    }
-    
-    
-    //SDL_RenderDrawLine(renderer, 320, 200, 300, 240);
-    //SDL_RenderDrawLine(renderer, 300, 240, 340, 240);
-    //SDL_RenderDrawLine(renderer, 340, 240, 320, 200);
-    SDL_RenderPresent(renderer);
-
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) {
-            done = SDL_TRUE;
-        }
-    }
-};
-*/
-
-/*
-void mainx(SDL_Renderer* renderer) {
-    double olderror3=0;
-    double olderror2=0;
-    double olderror=0;
+int mainz(int argc, char **argv) {
 
         parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
 
         findKoef();
 
-        
+        int inputsize = 30;
+        int outputsize = 1;
+        int addx = 0;
        // Segundo teste:
         vector<double> input;
         for(int i=0;i< inputsize;i++)
             input.push_back(datavect[i+ addx].open/ koef);
-       
+
         vector<double> target;
         for (int i = 0; i < outputsize; i++)
             target.push_back(datavect[i + inputsize + addx].open / koef);
-    
-        
-        double learningRate = 0.01;
-        double momentum = 1;
-        double bias = 1;
+
+        double learningRate  = 0.05;
+        double momentum      = 1;
+        double bias          = 1;
 
         vector<int> topology;
+        topology.push_back(650);
+        topology.push_back(213);
+        topology.push_back(650);
 
-        topology.push_back(65);
-        topology.push_back(21);
-        topology.push_back(65);
-
-        NeuralNetwork *n = new NeuralNetwork(topology, 2, 3, 1, bias, learningRate, momentum);
-
-        n->loadWeights((char*)"c:\\prenos\\NeuralFin\\tslaW.csv");
-
-        drawgraph(renderer,n,0);
+        NeuralNetwork *n = new NeuralNetwork(topology, 2, 3, 1, 1, 0.05, 1);
 
         for (int i = 0; i < 1000; i++) {
             // cout << "Training at index " << i << endl;
             addx = 0;
-            double allerror = 0;
-            for (int j = 0; j < datavect.size()- inputsize- outputsize; j++)
+            for (int j = 0; j < 5; j++)
             {
                 for (int k = 0; k < inputsize; k++)
                     input[k]=datavect[k + addx].open / koef;
@@ -198,80 +120,118 @@ void mainx(SDL_Renderer* renderer) {
                     target[k]=datavect[k + inputsize + addx].open / koef;
                 n->train(input, target, bias, learningRate, momentum);
                 addx++;
-                cout << " " << j;
-                allerror += n->error * koef;
+                cout << "Index: " << j << endl;
             }
-            drawgraph(renderer, n, 0);
-            cout << endl << "Error: " << allerror << " | "<< learningRate <<endl;
-            olderror3 = olderror2;
-            olderror2 = olderror;
-            olderror = allerror;
-            //if(abs(olderror3-olderror)< learningRate)learningRate = learningRate * 0.99;
+            cout << "Error: " << n->error << endl;
             n->saveWeights((char*)"c:\\prenos\\NeuralFin\\tslaW.csv");
         }
        // Primeiro teste:
+    return 0;
+}*/
 
-    //return 0;
-}
-*/
+SDL_bool done = SDL_FALSE;
 
-#include <stdlib.h>
-#include <stdio.h>
+int inputsize = 2;
+int outputsize = 1;
+int countoff = 4;// 4;
+int cols;
+int rows;
 
-void NoOpDeallocator(void* data, size_t a, void* b) {}
+void ipusch(vector<double>* input, int x, int y, int index, double value) {
+    (*input)[countoff * (cols * x + y) + index] = value;
+};
 
-#include <MiniDNN.h>
-using namespace MiniDNN;
+double iget(vector<double>* input, int x, int y, int index) {
+    return (*input)[countoff * (cols * x + y) + index];
+};
 
-typedef Eigen::MatrixXd Matrix;
-typedef Eigen::VectorXd Vector;
+void ipuschw(vector<double>* weight, /*int x,*/ int y, int index, double value) {
+    (*weight)[countoff * (/*cols * x +*/ y)+index] = value;
+};
 
-void drawgraph(SDL_Renderer* renderer, Matrix locnetwork, int pos) {
-    SDL_Event event;    
-    int rendx = 640;
-    int rendy = 480;
+double igetw(vector<double>* weight, /*int x,*/ int y, int index) {
+    return (*weight)[countoff * (/*cols * x +*/ y)+index];
+};
+
+void ipuscha(vector<double>* addkoef, /*int x,*/ int y, int index, double value) {
+    (*addkoef)[countoff * (/*cols * x +*/ y)+index] = value;
+};
+
+double igeta(vector<double>* addkoef, /*int x,*/ int y, int index) {
+    return (*addkoef)[countoff * (/*cols * x +*/ y)+index];
+};
+
+
+int rendx = 640 * 2;
+int rendy = 480 * 2;
+
+int countok;
+int countno;
+
+void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos) {
+    SDL_Event event;
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+    
     int oldx, oldy;
-    if (pos == -1)
+
+    countok=0;
+    countno=0;
+
+    for (int i = 0; i < datavect.size(); i++)
     {
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-        SDL_RenderClear(renderer);
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-        for (int i = 0; i < datavect.size(); i++)
-        {
-            int x1 = ((double)i / datavect.size()) * rendx;
-            int y1 = rendy - (datavect[i].open / (koef / 3) * rendy);
-            if (i > 0)
-                SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
-            oldx = x1;
-            oldy = y1;
-        }
+        int x1 = ((double)i / datavect.size()) * rendx;
+        int y1 = rendy - (datavect[i].open / (koef / 3) * rendy);
+        if (i > 0)
+            SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
+        oldx = x1;
+        oldy = y1;
     }
     vector<double> input;
     for (int k = 0; k < inputsize; k++)
         input.push_back(0);
-    //for (int posi = 0; posi < datavect.size() - outputsize - inputsize; posi++)
-    if (pos > -1)
+    for (int posi = 0; posi < datavect.size() - /*outputsize -*/ inputsize; posi++)
     {
         for (int k = 0; k < inputsize; k++)
-            input[k] = datavect[k + pos].open / koef;
+            input[k] = datavect[k + posi].open / koef;
 
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
 
-        
         for (int i = 0; i < outputsize; i++) {
-            double y = locnetwork(i, 0/*posi*/);
-            //double y = 0;//*locnetwork->at(0,0);// outputNeurons.at(i)->getActivatedVal();
-            int x1 = ((double)(i + pos + inputsize) / datavect.size()) * rendx;
-            int y1 = rendy - (y * rendy) * 3.0;
+            double y = (*output)[i + posi];
+            int x1 = ((double)(i + posi + inputsize) / datavect.size()) * rendx;
+            //int y1 = rendy - (y * rendy)/* * 3.0*/;
+            int y1 = rendy - (y / (koef / 3) * rendy);
             if (i > 0)
                 SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
             else
             {
-                int prex1 = ((double)(pos + inputsize - 1) / datavect.size()) * rendx;
-                int prey1 = rendy - (datavect[pos + inputsize - 1].open / (koef / 3) * rendy);
+                int prex1 = ((double)(posi + inputsize - 1) / datavect.size()) * rendx;
+                int prey1 = rendy - (datavect[posi + inputsize - 1].open / (koef / 3) * rendy);
                 //int prex1 = ((double)posi / datavect.size()) * rendx;
-                //int prey1 = rendy - (datavect[posi].open / (koef / 3) * rendy);
-                SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+                //int prey1 = rendy - (datavect[posi].open / (koef / 3) * rendy);                
+                int truey1 = datavect[posi + inputsize - 1].open;
+                int truey2 = datavect[posi + inputsize].open;
+                int predy1 = datavect[posi + inputsize - 1].open;
+                int predy2 = y;
+                int truepos = 0;
+                if (truey1 < truey2)truepos = 1;
+                int predpos = 0;
+                if (predy1 < predy2)predpos = 1;
+
+                if (truepos == predpos)
+                {
+                    countok++;
+                    SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+                }
+                else
+                {   
+                    countno++;
+                    SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);                    
+                }
+                SDL_RenderDrawLine(renderer, x1, 0, x1, 10);
+                //SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
                 SDL_RenderDrawLine(renderer, prex1, prey1, x1, y1);
                 SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
             }
@@ -293,110 +253,197 @@ void drawgraph(SDL_Renderer* renderer, Matrix locnetwork, int pos) {
     }
 };
 
-
-int mainx(SDL_Renderer* renderer)
-{
-    parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
-    findKoef();
-
-    int countlines = datavect.size() - inputsize - outputsize;
-    // Create two dimensional input data
-    //Vector x1 = Vector::LinSpaced(1000, 0.0, 3.15);//count,begin, end
-    //std::cout << x1;
-    //Vector x2 = Vector::LinSpaced(1000, 0.0, 3.15);
-    // Predictors -- each column is an observation
-    //Matrix x = Matrix::Random(2, 1000);//two rows,1000 cols //input
-    Matrix x = Matrix::Random(inputsize, countlines);//two rows,1000 cols //input
-   // Vector x1 = Vector::LinSpaced(countlines, 0.0, 3.15);//count,begin, end
-    //x.row(0) = x1;
-    //std::cout << x;
-    //x.row(0) = x1;
-    //x.row(1) = x2;
-    for (int j = 0; j < inputsize; j++)    
-    {
-        for (int i = 0; i < countlines; i++)
+void compoutputs(vector<double>* input, vector<double>* output, vector<double>* weight) {
+    for (int i = 0; i < rows; i++) {
+        (*output)[i] = 0;
+        for (int j = 0; j < cols; j++)
         {
-           x(j, i) = datavect[i].open/koef;
+            for (int k = 0; k < countoff; k++)
+                (*output)[i] += iget(input, i, j, k) * igetw(weight, /*i,*/ j, k);
         }
     }
+};
 
-    //drawgraph(renderer, 0);
+double detecterror(vector<double>* output) {
+    /*for (int i = 0; i < rows; i++) {
+        (*output)[i] = 0;
+        for (int j = 0; j < cols; j++)
+        {
+            for (int k = 0; k < countoff; k++)
+                (*output)[i] += iget(input, i, j, k) * igetw(weight, i, j, k);
+        }
+    }*/
+    double reserror = 0;
+    for (int k = 0; k < (*output).size(); k++)
+        reserror += abs((*output)[k] - datavect[k + inputsize].open);
+    return reserror;
+};
 
-    //std::cout << x;
-    // Response variables -- each column is an observation // output
-    Matrix y = Matrix::Random(outputsize, countlines);
+double fRand(double fMin, double fMax)
+{
+    double f = (double)rand() / RAND_MAX;
+    return fMin + f * (fMax - fMin);
+}
 
-    // Fill the output for the training    
-    for (int j = 0; j < outputsize; j++)
-    for (int i = 0; i < y.cols(); i++)
-    {
-        y(j, i) = datavect[i+j+ inputsize].open/koef;
-        //y(0, i) = std::pow(x(0, i), 2) + std::pow(x(1, i), 2);        
+void detectbest(int index,vector<double>* input, vector<double>* output, vector<double>* weight, vector<double>* addkoef) {    
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++)
+        {
+            //for (int k = 0; k < countoff; k++)
+            int k = index;
+            {                
+                double locrand = fRand(0, 5);
+                double origweight = igetw(weight, j, k);//(*weight)[k];
+                compoutputs(input, output, weight);
+                double geterror = detecterror(output);
+
+                ipuschw(weight, j, k, origweight + igeta(addkoef, j, k));
+                compoutputs(input, output, weight);
+                double geterror1 = detecterror(output);
+
+                ipuschw(weight, j, k, origweight - igeta(addkoef, j, k));
+                compoutputs(input, output, weight);
+                double geterror2 = detecterror(output);
+
+                if ((geterror < geterror1) && (geterror < geterror2))
+                {
+                    ipuschw(weight, j, k, origweight);
+                    ipuscha(addkoef, j, k, 0.51 * locrand * igeta(addkoef, j, k));
+                }
+                else if (geterror1 < geterror2)
+                {
+                    ipuschw(weight, j, k, origweight + igeta(addkoef, j, k));
+                    ipuscha(addkoef, j, k, 1.99 * locrand * igeta(addkoef, j, k));
+                }
+                else
+                {
+                    ipuschw(weight, j, k, origweight - igeta(addkoef, j, k));
+                    ipuscha(addkoef, j, k, 1.99 * locrand * igeta(addkoef, j, k));
+                }
+            }
+            //(*output)[i] += iget(input, i, j, k) * igetw(weight, i, j, k);
+        }
     }
+    /*
+    for (int k = 0; k < (*input).size(); k++) {
+        double origweight = (*weight)[k];
+        //igetw(vector<double>* weight, int y, int index)
+        compoutputs(input, output, weight);
+        double geterror = detecterror(output);
 
-    // Construct a network object
-    Network net;
-    // Create three layers
-    // Layer 1 -- FullyConnected, input size 2x200
-    Layer* layer1 = new FullyConnected<Identity>(inputsize, 200);
-    // Layer 2 -- max FullyConnected, input size 200x200
-    Layer* layer2 = new FullyConnected<Tanh>(200, 200);
-    Layer* layer3 = new FullyConnected<Tanh>(200, 200);
-    Layer* layer4 = new FullyConnected<Tanh>(200, 200);
-    // Layer 4 -- fully connected, input size 200x1
-    Layer* layer5 = new FullyConnected<Identity>(200, outputsize);
-    // Add layers to the network object
-    net.add_layer(layer1);
-    net.add_layer(layer2);
-    net.add_layer(layer3);
-    net.add_layer(layer4);
-    net.add_layer(layer5);
-    // Set output layer
-    net.set_output(new RegressionMSE());
-    // Create optimizer object
-    Adam opt;
-    opt.m_lrate = 0.00004;
-    // (Optional) set callback function object
-    VerboseCallback callback;
-    net.set_callback(callback);
-    // Initialize parameters with N(0, 0.01^2) using random seed 123
-    //net.init(0, 0.01, 000);
-    net.init(0, 0.0001, 123);
-    // Fit the model with a batch size of 100, running 10 epochs with random seed 123
-    //net.fit(opt, x, y, 1000, 1000, 000);//fit(opt, inputs,outputs,batchsize,epoch,seed)
+        (*weight)[k]= origweight + (*addkoef)[k];
+        compoutputs(input, output, weight);
+        double geterror1 = detecterror(output);
 
-    net.read_net("./NetFolder/", "NetFile");
-    for (int i = 0; i < 1000; i++)
+        (*weight)[k] = origweight - (*addkoef)[k];
+        compoutputs(input, output, weight);
+        double geterror2 = detecterror(output);
+
+        if ((geterror < geterror1) && (geterror < geterror2))
+        {
+            (*weight)[k]= origweight;
+            (*addkoef)[k] *= 0.9;
+        }
+        else if (geterror1 < geterror2)
+        {
+            (*weight)[k] = origweight + (*addkoef)[k];
+            (*addkoef)[k] *= 1.1;
+        }
+        else
+        {
+            (*weight)[k] = origweight - (*addkoef)[k];
+            (*addkoef)[k] *= 1.1;
+        }
+    }*/
+};
+
+void cleanweights(int index,vector<double>* weight)
+{
+    for (int j = 0; j < cols; j++)
     {
-        net.fit(opt, x, y, 1/*countlines*/, 1, 123, drawgraph, renderer);//fit(opt, inputs,outputs,batchsize,epoch,seed)
-        net.export_net("./NetFolder/", "NetFile");
-        cout << " "<< opt.m_lrate << endl;
-        opt.m_lrate *= 0.9;
-    }
-    //---------------------------------
-    
-    // Fill the output for the test
-    Matrix xt = (Matrix::Random(inputsize, countlines).array() + 1.0) / 2 * 3.15;
-    Matrix yt = Matrix::Random(1, countlines);
+        //for (int k = 0; k < index; k++)
+        {
+            ipuschw(weight, j, index, 0);
+        }            
+    }    
+};
 
-    for (int i = 0; i < yt.cols(); i++)
+
+int mainx(SDL_Renderer* renderer) {
+
+    parseCSV((char*)"c:\\prenos\\NeuralFin\\tsla.csv");
+
+    findKoef();
+
+    cols = (inputsize + (inputsize - 1) + (inputsize - 2));
+    //int cols2 = (inputsize + (inputsize - 1) + (inputsize - 2)) * countoff;
+    rows = datavect.size() - inputsize /*- outputsize*/;
+    vector<double> input(cols * rows * countoff);
+    vector<double> weight(cols/* * rows*/ * countoff);
+    vector<double> addkoef(cols/* * rows*/ * countoff);
+
+    vector<double> output(rows);
+    for (int i = 0; i < weight.size(); i++)
     {
-        yt(0, i) = std::pow(xt(0, i), 2) + std::pow(xt(1, i), 2);
+        weight[i] = 1;
+        addkoef[i] = 0.1;
     }
-    // Obtain prediction -- each column is an observation
-    Eigen::MatrixXd pred = net.predict(xt);
-    // Export the network to the NetFolder folder with prefix NetFile
-    net.export_net("./NetFolder/", "NetFile");
-    // Create a new network
-    Network netFromFile;
-    // Read structure and paramaters from file
-    netFromFile.read_net("./NetFolder/", "NetFile");
-    // Test that they give the same prediction
-    std::cout << (pred - netFromFile.predict(xt)).norm() << std::endl;
-    // Layer objects will be freed by the network object,
-    // so do not manually delete them
+    //init
+    for (int i = 0; i < rows; i++)
+    {
+        //if (i == 62)
+        //   cout << i;
+        for (int j = 0; j < inputsize; j++)
+        {
+            ipusch(&input, i, j, 0, datavect[i + j].open);
+            ipusch(&input, i, j, 1, datavect[i + j].open * datavect[i + j].open);
+            ipusch(&input, i, j, 2, sqrt(abs(datavect[i + j].open)));
+            ipusch(&input, i, j, 3, log(1 + abs(datavect[i + j].open)));
+        }
+        for (int j = 0; j < inputsize - 1; j++)
+        {
+            double der1 = datavect[i + j].open + datavect[i + j + 1].open;
+            ipusch(&input, i, j + inputsize, 0, der1);
+            ipusch(&input, i, j + inputsize, 1, der1 * der1);
+            ipusch(&input, i, j + inputsize, 2, sqrt(abs(der1)));
+            ipusch(&input, i, j + inputsize, 3, log(1 + abs(der1)));
+        }
+        for (int j = 0; j < inputsize - 2; j++)
+        {
+            double der1 = datavect[i + j].open + datavect[i + j + 1].open;
+            double der2 = datavect[i + j + 1].open + datavect[i + j + 2].open;
+            double der3 = der1 - der2;
+            ipusch(&input, i, j + inputsize * 2 - 1, 0, der3);
+            ipusch(&input, i, j + inputsize * 2 - 1, 1, der3 * der3);
+            ipusch(&input, i, j + inputsize * 2 - 1, 2, sqrt(abs(der3)));
+            ipusch(&input, i, j + inputsize * 2 - 1, 3, log(1 + abs(der3)));
+        }
+    }
+    //init
+
+    cleanweights(0, &weight);
+    cleanweights(1, &weight);
+    cleanweights(2, &weight);
+    cleanweights(3, &weight);
+
+    //steps
+    for (int steps = 0; steps < 1000000; steps++)
+    {
+        //for (int i = 0; i < cols * rows * countoff; i++)
+        detectbest(0, &input, &output, &weight, &addkoef);
+        detectbest(1, &input, &output, &weight, &addkoef);
+        detectbest(2, &input, &output, &weight, &addkoef);
+        detectbest(3, &input, &output, &weight, &addkoef);
+
+        //compoutputs(&input,&output,&weight);
+        drawgraph(renderer, &output, 0);
+        cout << countok << " " << countno << endl;
+    }
+    //steps
+
     return 0;
 }
+
 
 int main(int argc, char* argv[])
 {
@@ -404,7 +451,7 @@ int main(int argc, char* argv[])
         SDL_Window* window = NULL;
         SDL_Renderer* renderer = NULL;
 
-        if (SDL_CreateWindowAndRenderer(640, 480, 0, &window, &renderer) == 0) {
+        if (SDL_CreateWindowAndRenderer(rendx, rendy, 0, &window, &renderer) == 0) {
             //SDL_bool done = SDL_FALSE;
             mainx(renderer);
             while (!done) {
@@ -437,4 +484,3 @@ int main(int argc, char* argv[])
     SDL_Quit();
     return 0;
 }
-
