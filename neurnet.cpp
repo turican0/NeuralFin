@@ -54,6 +54,11 @@ std::istream& operator>>(std::istream& ist, data_t& data)
 std::vector<data_t> datavect;
 std::vector<data_t> dataother[100];
 
+int inputsize = 15;
+int outputsize = 1;
+int countoff = 4;// 4;
+int rowtrunc = 500;// 10000;
+
 int countother=0;
 void parseCSV(char* file) {
     std::ifstream  data(file);
@@ -71,7 +76,7 @@ void parseCSV(char* file) {
             datavect.push_back(data);
         }
         x++;
-        //if (x > 6)break;
+        if (x > rowtrunc)break;
     }
 };
 
@@ -91,7 +96,7 @@ void parseCSVother(char* file) {
             dataother[countother].push_back(data);
         }
         x++;
-        //if (x > 6)break;
+        if (x > rowtrunc)break;
     }
     countother++;
 };
@@ -158,9 +163,6 @@ int mainz(int argc, char **argv) {
 
 SDL_bool done = SDL_FALSE;
 
-int inputsize = 15;
-int outputsize = 1;
-int countoff = 1;// 4;
 int cols;
 int rows;
 
@@ -172,20 +174,20 @@ double iget(vector<double>* input, int x, int y, int index) {
     return (*input)[countoff * (cols * x + y) + index];
 };
 
-void ipuschw(vector<double>* weight, /*int x,*/ int y, int index, double value) {
-    (*weight)[countoff * (/*cols * x +*/ y)+index] = value;
+void ipuschw(int ooindex, vector<double>* weight, /*int x,*/ int y, int index, double value) {
+    (*weight)[ooindex* countoff* cols +countoff * (/*cols * x +*/ y)+index] = value;
 };
 
-double igetw(vector<double>* weight, /*int x,*/ int y, int index) {
-    return (*weight)[countoff * (/*cols * x +*/ y)+index];
+double igetw(int ooindex, vector<double>* weight, /*int x,*/ int y, int index) {
+    return (*weight)[ooindex * countoff * cols + countoff * (/*cols * x +*/ y)+index];
 };
 
-void ipuscha(vector<double>* addkoef, /*int x,*/ int y, int index, double value) {
-    (*addkoef)[countoff * (/*cols * x +*/ y)+index] = value;
+void ipuscha(int ooindex, vector<double>* addkoef, /*int x,*/ int y, int index, double value) {
+    (*addkoef)[ooindex * countoff * cols + countoff * (/*cols * x +*/ y)+index] = value;
 };
 
-double igeta(vector<double>* addkoef, /*int x,*/ int y, int index) {
-    return (*addkoef)[countoff * (/*cols * x +*/ y)+index];
+double igeta(int ooindex, vector<double>* addkoef, /*int x,*/ int y, int index) {
+    return (*addkoef)[ooindex * countoff * cols + countoff * (/*cols * x +*/ y)+index];
 };
 
 
@@ -286,7 +288,16 @@ void compoutputs(vector<double>* input, vector<double>* output, vector<double>* 
         for (int j = 0; j < cols; j++)
         {
             for (int k = 0; k < countoff; k++)
-                (*output)[i] += iget(input, i, j, k) * igetw(weight, /*i,*/ j, k);
+                (*output)[i] += iget(input, i, j, k) * igetw(0,weight, /*i,*/ j, k);
+        }
+    }
+    for (int oo = 0; oo < countother; oo++)
+    for (int i = 0; i < rows; i++) {
+        (*output)[i] = 0;
+        for (int j = 0; j < cols; j++)
+        {
+            for (int k = 0; k < countoff; k++)
+                (*output)[i] += iget(input, i, j, k) * igetw(oo+1,weight, /*i,*/ j, k);
         }
     }
 };
@@ -321,36 +332,119 @@ void detectbest(int index,vector<double>* input, vector<double>* output, vector<
             int k = index;
             {                
                 double locrand = fRand(0, 2);
-                double origweight = igetw(weight, j, k);//(*weight)[k];
+                double origweight = igetw(0, weight, j, k);//(*weight)[k];
                 compoutputs(input, output, weight);
                 double geterror = detecterror(output);
 
-                ipuschw(weight, j, k, origweight + igeta(addkoef, j, k));
+                ipuschw(0, weight, j, k, origweight + igeta(0, addkoef, j, k));
                 compoutputs(input, output, weight);
                 double geterror1 = detecterror(output);
 
-                ipuschw(weight, j, k, origweight - igeta(addkoef, j, k));
+                ipuschw(0, weight, j, k, origweight - igeta(0, addkoef, j, k));
                 compoutputs(input, output, weight);
                 double geterror2 = detecterror(output);
 
                 if ((geterror < geterror1) && (geterror < geterror2))
                 {
-                    ipuschw(weight, j, k, origweight);
-                    //ipuscha(addkoef, j, k, 0.91 * locrand * igeta(addkoef, j, k));
+                    ipuschw(0, weight, j, k, origweight);
+                    //ipuscha(0, addkoef, j, k, 0.9999 * locrand * igeta(0, addkoef, j, k));
                     //cout << ":0 " << geterror << endl;
                     //cout << geterror << ":" << geterror1 << ":" << geterror2 <<endl;
                 }
                 else if (geterror1 < geterror2)
                 {
-                    ipuschw(weight, j, k, origweight + igeta(addkoef, j, k));
-                    //ipuscha(addkoef, j, k, 1.99 * locrand * igeta(addkoef, j, k));
+                    ipuschw(0, weight, j, k, origweight + igeta(0, addkoef, j, k));
+                    //ipuscha(0, addkoef, j, k, 1.0001 * locrand * igeta(0, addkoef, j, k));
                     //cout << ":1 " << geterror1 << endl;
                     //cout << geterror << ":" << geterror1 << ":" << geterror2 << endl;
                 }
                 else
                 {
-                    ipuschw(weight, j, k, origweight - igeta(addkoef, j, k));
-                    //ipuscha(addkoef, j, k, 1.99 * locrand * igeta(addkoef, j, k));
+                    ipuschw(0, weight, j, k, origweight - igeta(0, addkoef, j, k));
+                    //ipuscha(0, addkoef, j, k, 1.0001 * locrand * igeta(0, addkoef, j, k));
+                    //cout << ":2 " << geterror2 << endl;
+                    //cout << geterror << ":" << geterror1 << ":" << geterror2 << endl;
+                }
+            }
+            /*
+            std::this_thread::sleep_for(std::chrono::nanoseconds(10));
+            std::this_thread::sleep_until(std::chrono::system_clock::now() + std::chrono::seconds(1));
+            */
+            //(*output)[i] += iget(input, i, j, k) * igetw(weight, i, j, k);
+        }
+    }
+    /*
+    for (int k = 0; k < (*input).size(); k++) {
+        double origweight = (*weight)[k];
+        //igetw(vector<double>* weight, int y, int index)
+        compoutputs(input, output, weight);
+        double geterror = detecterror(output);
+
+        (*weight)[k]= origweight + (*addkoef)[k];
+        compoutputs(input, output, weight);
+        double geterror1 = detecterror(output);
+
+        (*weight)[k] = origweight - (*addkoef)[k];
+        compoutputs(input, output, weight);
+        double geterror2 = detecterror(output);
+
+        if ((geterror < geterror1) && (geterror < geterror2))
+        {
+            (*weight)[k]= origweight;
+            (*addkoef)[k] *= 0.9;
+        }
+        else if (geterror1 < geterror2)
+        {
+            (*weight)[k] = origweight + (*addkoef)[k];
+            (*addkoef)[k] *= 1.1;
+        }
+        else
+        {
+            (*weight)[k] = origweight - (*addkoef)[k];
+            (*addkoef)[k] *= 1.1;
+        }
+    }*/
+};
+
+void detectbestoth(int oo,int index, vector<double>* input, vector<double>* output, vector<double>* weight, vector<double>* addkoef) {
+    //for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < cols; j++)
+        {
+            //for (int k = 0; k < countoff; k++)
+            int k = index;
+            {
+                double locrand = fRand(0, 2);
+                double origweight = igetw(oo+1, weight, j, k);//(*weight)[k];
+                compoutputs(input, output, weight);
+                double geterror = detecterror(output);
+
+                ipuschw(oo+1, weight, j, k, origweight + igeta(oo + 1, addkoef, j, k));
+                compoutputs(input, output, weight);
+                double geterror1 = detecterror(output);
+
+                ipuschw(oo+1, weight, j, k, origweight - igeta(oo + 1, addkoef, j, k));
+                compoutputs(input, output, weight);
+                double geterror2 = detecterror(output);
+
+                if ((geterror < geterror1) && (geterror < geterror2))
+                {
+                    ipuschw(oo+1, weight, j, k, origweight);
+                    //ipuscha(oo + 1, addkoef, j, k, 0.9999 * locrand * igeta(oo+1, addkoef, j, k));
+                    //cout << ":0 " << geterror << endl;
+                    //cout << geterror << ":" << geterror1 << ":" << geterror2 <<endl;
+                }
+                else if (geterror1 < geterror2)
+                {
+                    ipuschw(oo+1, weight, j, k, origweight + igeta(oo + 1, addkoef, j, k));
+                    //ipuscha(oo + 1, addkoef, j, k, 1.0001 * locrand * igeta(oo + 1, addkoef, j, k));
+                    //cout << ":1 " << geterror1 << endl;
+                    //cout << geterror << ":" << geterror1 << ":" << geterror2 << endl;
+                }
+                else
+                {
+                    ipuschw(oo+1, weight, j, k, origweight - igeta(oo + 1, addkoef, j, k));
+                    //ipuscha(oo + 1, addkoef, j, k, 1.0001 * locrand * igeta(oo + 1, addkoef, j, k));
                     //cout << ":2 " << geterror2 << endl;
                     //cout << geterror << ":" << geterror1 << ":" << geterror2 << endl;
                 }
@@ -401,18 +495,19 @@ void cleanweights(int index,vector<double>* weight)
     {
         //for (int k = 0; k < index; k++)
         {
-            ipuschw(weight, j, index, 0);
+            ipuschw(0, weight, j, index, 0);
         }            
     }    
 };
 
 void cleanweightsother(int ooindex,int index, vector<double>* weight)
 {
+    for (int oo = 0; oo < countother; oo++)
     for (int j = 0; j < cols; j++)
     {
         //for (int k = 0; k < index; k++)
         {
-            ipuschw(weight, j, index, 0);
+            ipuschw(oo+1,weight, j, index, 0);
         }
     }
 };
@@ -422,8 +517,8 @@ int mainx(SDL_Renderer* renderer) {
 
     parseCSV((char*)"c:\\prenos\\NeuralFin\\TSLA.csv");
     parseCSVother((char*)"c:\\prenos\\NeuralFin\\GOOG.csv");
-    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\MSFT.csv");
-    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\AMZN.csv");
+    parseCSVother((char*)"c:\\prenos\\NeuralFin\\MSFT.csv");
+    parseCSVother((char*)"c:\\prenos\\NeuralFin\\AMZN.csv");
 
     findKoef();
 
@@ -455,7 +550,7 @@ int mainx(SDL_Renderer* renderer) {
         }
         for (int j = 0; j < inputsize - 1; j++)
         {
-            double der1 = datavect[i + j].open + datavect[i + j + 1].open;
+            double der1 = datavect[i + j + 1].open - datavect[i + j].open;
             if (countoff > 0)ipusch(&input, i, j + inputsize, 0, der1);
             if (countoff > 1)ipusch(&input, i, j + inputsize, 1, der1 * der1);
             if (countoff > 2)ipusch(&input, i, j + inputsize, 2, sqrt(abs(der1)));
@@ -463,9 +558,7 @@ int mainx(SDL_Renderer* renderer) {
         }
         for (int j = 0; j < inputsize - 2; j++)
         {
-            double der1 = datavect[i + j].open + datavect[i + j + 1].open;
-            double der2 = datavect[i + j + 1].open + datavect[i + j + 2].open;
-            double der3 = der1 - der2;
+            double der3 = datavect[i + j + 2].open - 2 * datavect[i + j + 1].open + datavect[i + j].open;
             if (countoff > 0)ipusch(&input, i, j + inputsize * 2 - 1, 0, der3);
             if (countoff > 1)ipusch(&input, i, j + inputsize * 2 - 1, 1, der3 * der3);
             if (countoff > 2)ipusch(&input, i, j + inputsize * 2 - 1, 2, sqrt(abs(der3)));
@@ -489,7 +582,7 @@ int mainx(SDL_Renderer* renderer) {
         }
         for (int j = 0; j < inputsize - 1; j++)
         {
-            double der1 = dataother[oo][i + j].open + dataother[oo][i + j + 1].open;
+            double der1 = dataother[oo][i + j + 1].open - dataother[oo][i + j].open;
             if (countoff > 0)ipusch(&input, i, j + inputsize, 0, der1);
             if (countoff > 1)ipusch(&input, i, j + inputsize, 1, der1 * der1);
             if (countoff > 2)ipusch(&input, i, j + inputsize, 2, sqrt(abs(der1)));
@@ -497,9 +590,7 @@ int mainx(SDL_Renderer* renderer) {
         }
         for (int j = 0; j < inputsize - 2; j++)
         {
-            double der1 = dataother[oo][i + j].open + dataother[oo][i + j + 1].open;
-            double der2 = dataother[oo][i + j + 1].open + dataother[oo][i + j + 2].open;
-            double der3 = der1 - der2;
+            double der3 = dataother[oo][i + j + 2].open - 2*dataother[oo][i + j + 1].open+ dataother[oo][i + j].open;
             if (countoff > 0)ipusch(&input, i, j + inputsize * 2 - 1, 0, der3);
             if (countoff > 1)ipusch(&input, i, j + inputsize * 2 - 1, 1, der3 * der3);
             if (countoff > 2)ipusch(&input, i, j + inputsize * 2 - 1, 2, sqrt(abs(der3)));
@@ -512,14 +603,14 @@ int mainx(SDL_Renderer* renderer) {
     if (countoff > 1)cleanweights(1, &weight);
     if (countoff > 2)cleanweights(2, &weight);
     if (countoff > 3)cleanweights(3, &weight);
-    /*for (int oo = 0; oo < countother; oo++)
+    for (int oo = 0; oo < countother; oo++)
     {
-        cleanweightsother(oo,0, &weight);
-        cleanweightsother(oo, 1, &weight);
-        cleanweightsother(oo, 2, &weight);
-        cleanweightsother(oo, 3, &weight);
+        if (countoff > 0)cleanweightsother(oo, 0, &weight);
+        if (countoff > 1)cleanweightsother(oo, 1, &weight);
+        if (countoff > 2)cleanweightsother(oo, 2, &weight);
+        if (countoff > 3)cleanweightsother(oo, 3, &weight);
     //ipusch(&input, i, j, 0, dataother[oo][i + j].open);
-    }*/
+    }
 
     //steps
     for (int steps = 0; steps < 1000000; steps++)
@@ -529,7 +620,14 @@ int mainx(SDL_Renderer* renderer) {
         if (countoff > 1)detectbest(1, &input, &output, &weight, &addkoef);
         if (countoff > 2)detectbest(2, &input, &output, &weight, &addkoef);
         if (countoff > 3)detectbest(3, &input, &output, &weight, &addkoef);
-
+        /*for (int oo = 0; oo < countother; oo++)
+        {
+            if (countoff > 0)detectbestoth(oo, 0, &input, &output, &weight, &addkoef);
+            if (countoff > 1)detectbestoth(oo, 1, &input, &output, &weight, &addkoef);
+            if (countoff > 2)detectbestoth(oo, 2, &input, &output, &weight, &addkoef);
+            if (countoff > 3)detectbestoth(oo, 3, &input, &output, &weight, &addkoef);
+            //ipusch(&input, i, j, 0, dataother[oo][i + j].open);
+        }*/
         //compoutputs(&input,&output,&weight);
         drawgraph(renderer, &output, 0);
         cout << countok << " " << countno << endl;
@@ -579,3 +677,5 @@ int main(int argc, char* argv[])
     SDL_Quit();
     return 0;
 }
+
+//closed, NO open
