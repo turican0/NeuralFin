@@ -12,6 +12,8 @@
 
 #include <chrono>
 #include <thread>
+#include <iomanip>  // std::setprecision()
+//#include <limits>
 //#include <map>
 
 //#include "openner/Matrix.hpp"
@@ -530,8 +532,19 @@ void savedata(vector<double>* weight) {
     ofstream myfile;
     myfile.open("data.txt");
     for(int i=0;i<(*weight).size();i++)
-        myfile << (*weight)[i] <<"\n";
+        myfile << std::setprecision(17) << (*weight)[i] <<"\n";
     myfile.close();
+};
+
+void loaddata(vector<double>* weight) {
+    std::ifstream  data("data.txt");
+    std::string line;
+    int x = 0;
+    while ((std::getline(data, line)))
+    {
+        (*weight)[x]=std::stod(line);
+        x++;
+    }
 };
 
 
@@ -636,6 +649,7 @@ int mainx(SDL_Renderer* renderer) {
     if (countoff > 1)cleanweights(1, &weight);
     if (countoff > 2)cleanweights(2, &weight);
     if (countoff > 3)cleanweights(3, &weight);
+
     for (int oo = 0; oo < countother; oo++)
     {
         if (countoff > 0)cleanweightsother(oo, 0, &weight);
@@ -644,6 +658,8 @@ int mainx(SDL_Renderer* renderer) {
         if (countoff > 3)cleanweightsother(oo, 3, &weight);
     //ipusch(&input, i, j, 0, dataother[oo][i + j].open);
     }
+
+    loaddata(&weight);
 
     //steps
     for (int steps = 0; steps < 1000000; steps++)
@@ -663,7 +679,7 @@ int mainx(SDL_Renderer* renderer) {
         }*/
         //compoutputs(&input,&output,&weight);
         drawgraph(renderer, &output, 0, &weight);
-        savedata(&weight);
+        savedata(&weight);        
         cout << countok << " " << countno << endl;
     }
     //steps
