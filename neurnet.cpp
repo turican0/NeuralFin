@@ -197,7 +197,7 @@ int rendy = 480 * 2;
 int countok;
 int countno;
 
-void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos) {
+void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<double>* weight) {
     SDL_Event event;
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
@@ -269,6 +269,18 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos) {
         }
     }
     
+    int koefxw = 5;
+    int koefyw = 50000;
+    int xweight = 0;
+    int yweight = 200;
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
+    for (int wo = 0; wo < 20; wo++)
+    {
+        igetw(0, weight, /*i,*/ j, k)
+
+        SDL_RenderDrawLine(renderer, xweight+wo* koefxw, yweight+ (*weight)[wo*4]* koefyw, xweight + (wo+1) * koefxw, yweight + (*weight)[(wo+1)*4] * koefyw);
+    }
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
 
     //SDL_RenderDrawLine(renderer, 320, 200, 300, 240);
     //SDL_RenderDrawLine(renderer, 300, 240, 340, 240);
@@ -516,9 +528,9 @@ void cleanweightsother(int ooindex,int index, vector<double>* weight)
 int mainx(SDL_Renderer* renderer) {
 
     parseCSV((char*)"c:\\prenos\\NeuralFin\\TSLA.csv");
-    parseCSVother((char*)"c:\\prenos\\NeuralFin\\GOOG.csv");
-    parseCSVother((char*)"c:\\prenos\\NeuralFin\\MSFT.csv");
-    parseCSVother((char*)"c:\\prenos\\NeuralFin\\AMZN.csv");
+    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\GOOG.csv");
+    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\MSFT.csv");
+    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\AMZN.csv");
 
     findKoef();
 
@@ -629,7 +641,7 @@ int mainx(SDL_Renderer* renderer) {
             //ipusch(&input, i, j, 0, dataother[oo][i + j].open);
         }*/
         //compoutputs(&input,&output,&weight);
-        drawgraph(renderer, &output, 0);
+        drawgraph(renderer, &output, 0, &weight);
         cout << countok << " " << countno << endl;
     }
     //steps
