@@ -54,10 +54,11 @@ std::istream& operator>>(std::istream& ist, data_t& data)
 std::vector<data_t> datavect;
 std::vector<data_t> dataother[100];
 
-int inputsize = 15;
+int inputsize = 30;
 int outputsize = 1;
 int countoff = 4;// 4;
-int rowtrunc = 500;// 10000;
+int rowtrunc = 2500;// 10000;
+int countofder = 3;//3;
 
 int countother=0;
 void parseCSV(char* file) {
@@ -270,15 +271,16 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
     }
     
     int koefxw = 5;
-    int koefyw = 50000;
+    int koefyw = 500;
     int xweight = 0;
     int yweight = 200;
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
-    for (int wo = 0; wo < 20; wo++)
+    for (int wo = 0; wo < (cols-1)/ countofder; wo++)
     {
-        igetw(0, weight, /*i,*/ j, k)
-
-        SDL_RenderDrawLine(renderer, xweight+wo* koefxw, yweight+ (*weight)[wo*4]* koefyw, xweight + (wo+1) * koefxw, yweight + (*weight)[(wo+1)*4] * koefyw);
+        //double w0 = igetw(0, weight, j, k);
+        double w0 = igetw(0, weight, wo* countofder, 0);
+        double w1 = igetw(0, weight, (wo+1)* countofder, 0);
+        SDL_RenderDrawLine(renderer, xweight+wo* koefxw, yweight+ w0* koefyw, xweight + (wo+1) * koefxw, yweight + w1 * koefyw);
     }
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
 
@@ -524,6 +526,14 @@ void cleanweightsother(int ooindex,int index, vector<double>* weight)
     }
 };
 
+void savedata(vector<double>* weight) {
+    ofstream myfile;
+    myfile.open("data.txt");
+    for(int i=0;i<(*weight).size();i++)
+        myfile << (*weight)[i] <<"\n";
+    myfile.close();
+};
+
 
 int mainx(SDL_Renderer* renderer) {
 
@@ -534,7 +544,12 @@ int mainx(SDL_Renderer* renderer) {
 
     findKoef();
 
-    cols = (inputsize + (inputsize - 1) + (inputsize - 2));
+    cols = 0;
+    if (countofder > 0)cols += inputsize;
+    if (countofder > 1)cols += inputsize-1;
+    if (countofder > 2)cols += inputsize-2;
+
+    //cols = (inputsize + (inputsize - 1) + (inputsize - 2));
     //int cols2 = (inputsize + (inputsize - 1) + (inputsize - 2)) * countoff;
     rows = datavect.size() - inputsize /*- outputsize*/;
     vector<double> input(cols * rows * countoff);
@@ -553,6 +568,7 @@ int mainx(SDL_Renderer* renderer) {
     {
         //if (i == 62)
         //   cout << i;
+        if (countofder > 0)
         for (int j = 0; j < inputsize; j++)
         {
             if (countoff > 0)ipusch(&input, i, j, 0, datavect[i + j].open);
@@ -560,6 +576,7 @@ int mainx(SDL_Renderer* renderer) {
             if (countoff > 2)ipusch(&input, i, j, 2, sqrt(abs(datavect[i + j].open)));
             if (countoff > 3)ipusch(&input, i, j, 3, log(1 + abs(datavect[i + j].open)));
         }
+        if (countofder > 1)
         for (int j = 0; j < inputsize - 1; j++)
         {
             double der1 = datavect[i + j + 1].open - datavect[i + j].open;
@@ -568,6 +585,7 @@ int mainx(SDL_Renderer* renderer) {
             if (countoff > 2)ipusch(&input, i, j + inputsize, 2, sqrt(abs(der1)));
             if (countoff > 3)ipusch(&input, i, j + inputsize, 3, log(1 + abs(der1)));
         }
+        if (countofder > 2)
         for (int j = 0; j < inputsize - 2; j++)
         {
             double der3 = datavect[i + j + 2].open - 2 * datavect[i + j + 1].open + datavect[i + j].open;
@@ -585,6 +603,7 @@ int mainx(SDL_Renderer* renderer) {
     {
         //if (i == 62)
         //   cout << i;
+        if (countofder > 0)
         for (int j = 0; j < inputsize; j++)
         {
             if (countoff > 0)ipusch(&input, i, j, 0, dataother[oo][i + j].open);
@@ -592,6 +611,7 @@ int mainx(SDL_Renderer* renderer) {
             if (countoff > 2)ipusch(&input, i, j, 2, sqrt(abs(dataother[oo][i + j].open)));
             if (countoff > 3)ipusch(&input, i, j, 3, log(1 + abs(dataother[oo][i + j].open)));
         }
+        if (countofder > 1)
         for (int j = 0; j < inputsize - 1; j++)
         {
             double der1 = dataother[oo][i + j + 1].open - dataother[oo][i + j].open;
@@ -600,6 +620,7 @@ int mainx(SDL_Renderer* renderer) {
             if (countoff > 2)ipusch(&input, i, j + inputsize, 2, sqrt(abs(der1)));
             if (countoff > 3)ipusch(&input, i, j + inputsize, 3, log(1 + abs(der1)));
         }
+        if (countofder > 2)
         for (int j = 0; j < inputsize - 2; j++)
         {
             double der3 = dataother[oo][i + j + 2].open - 2*dataother[oo][i + j + 1].open+ dataother[oo][i + j].open;
@@ -642,6 +663,7 @@ int mainx(SDL_Renderer* renderer) {
         }*/
         //compoutputs(&input,&output,&weight);
         drawgraph(renderer, &output, 0, &weight);
+        savedata(&weight);
         cout << countok << " " << countno << endl;
     }
     //steps
