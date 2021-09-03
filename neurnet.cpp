@@ -363,21 +363,21 @@ void detectbest(int index,vector<double>* input, vector<double>* output, vector<
                 if ((geterror < geterror1) && (geterror < geterror2))
                 {
                     ipuschw(0, weight, j, k, origweight);
-                    //ipuscha(0, addkoef, j, k, 0.9999 * locrand * igeta(0, addkoef, j, k));
+                    ipuscha(0, addkoef, j, k, 0.99 * locrand * igeta(0, addkoef, j, k));
                     //cout << ":0 " << geterror << endl;
                     //cout << geterror << ":" << geterror1 << ":" << geterror2 <<endl;
                 }
                 else if (geterror1 < geterror2)
                 {
                     ipuschw(0, weight, j, k, origweight + igeta(0, addkoef, j, k));
-                    //ipuscha(0, addkoef, j, k, 1.0001 * locrand * igeta(0, addkoef, j, k));
+                    ipuscha(0, addkoef, j, k, 1.01 * locrand * igeta(0, addkoef, j, k));
                     //cout << ":1 " << geterror1 << endl;
                     //cout << geterror << ":" << geterror1 << ":" << geterror2 << endl;
                 }
                 else
                 {
                     ipuschw(0, weight, j, k, origweight - igeta(0, addkoef, j, k));
-                    //ipuscha(0, addkoef, j, k, 1.0001 * locrand * igeta(0, addkoef, j, k));
+                    ipuscha(0, addkoef, j, k, 1.01 * locrand * igeta(0, addkoef, j, k));
                     //cout << ":2 " << geterror2 << endl;
                     //cout << geterror << ":" << geterror1 << ":" << geterror2 << endl;
                 }
@@ -573,7 +573,7 @@ int mainx(SDL_Renderer* renderer) {
     for (int i = 0; i < weight.size(); i++)
     {
         weight[i] = 1;
-        addkoef[i] = 0.0001;
+        addkoef[i] = 0.00001;
     }
 
     //init
@@ -659,9 +659,43 @@ int mainx(SDL_Renderer* renderer) {
     //ipusch(&input, i, j, 0, dataother[oo][i + j].open);
     }
 
-    loaddata(&weight);
+    //loaddata(&weight);
 
-    //steps
+    cout << "steps 1" << endl;
+
+    //steps 1
+    for (int steps = 0; steps < 100; steps++)
+    {
+        //for (int i = 0; i < cols * rows * countoff; i++)
+        if (countoff > 0)detectbest(0, &input, &output, &weight, &addkoef);
+        //if (countoff > 1)detectbest(1, &input, &output, &weight, &addkoef);
+        //if (countoff > 2)detectbest(2, &input, &output, &weight, &addkoef);
+        //if (countoff > 3)detectbest(3, &input, &output, &weight, &addkoef);
+        cout << steps << " - ";
+        drawgraph(renderer, &output, 0, &weight);
+        savedata(&weight);        
+        cout << countok << " " << countno << endl;
+    }
+    //steps 1
+
+    cout << "steps 2" << endl;
+    //steps 2
+    for (int steps = 0; steps < 100; steps++)
+    {
+        //for (int i = 0; i < cols * rows * countoff; i++)
+        if (countoff > 0)detectbest(0, &input, &output, &weight, &addkoef);
+        if (countoff > 1)detectbest(1, &input, &output, &weight, &addkoef);
+        if (countoff > 2)detectbest(2, &input, &output, &weight, &addkoef);
+        if (countoff > 3)detectbest(3, &input, &output, &weight, &addkoef);
+        cout << steps << " - ";
+        drawgraph(renderer, &output, 0, &weight);
+        savedata(&weight);
+        cout << countok << " " << countno << endl;
+    }
+    //steps 2
+
+    cout << "steps 3" << endl;
+    //steps 3
     for (int steps = 0; steps < 1000000; steps++)
     {
         //for (int i = 0; i < cols * rows * countoff; i++)
@@ -669,20 +703,21 @@ int mainx(SDL_Renderer* renderer) {
         if (countoff > 1)detectbest(1, &input, &output, &weight, &addkoef);
         if (countoff > 2)detectbest(2, &input, &output, &weight, &addkoef);
         if (countoff > 3)detectbest(3, &input, &output, &weight, &addkoef);
-        /*for (int oo = 0; oo < countother; oo++)
+        for (int oo = 0; oo < countother; oo++)
         {
             if (countoff > 0)detectbestoth(oo, 0, &input, &output, &weight, &addkoef);
             if (countoff > 1)detectbestoth(oo, 1, &input, &output, &weight, &addkoef);
             if (countoff > 2)detectbestoth(oo, 2, &input, &output, &weight, &addkoef);
             if (countoff > 3)detectbestoth(oo, 3, &input, &output, &weight, &addkoef);
             //ipusch(&input, i, j, 0, dataother[oo][i + j].open);
-        }*/
+        }
         //compoutputs(&input,&output,&weight);
+        cout << steps << " - ";
         drawgraph(renderer, &output, 0, &weight);
-        savedata(&weight);        
+        savedata(&weight);
         cout << countok << " " << countno << endl;
     }
-    //steps
+    //steps 3
 
     return 0;
 }
