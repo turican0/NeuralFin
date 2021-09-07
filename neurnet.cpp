@@ -502,16 +502,16 @@ void cleanweights(int ooindex, int index,vector<double>* weight)
     }    
 };
 
-void savedata(vector<double>* weight) {
+void savedata(vector<double>* weight,char* filename) {
     ofstream myfile;
-    myfile.open("data.txt");
+    myfile.open(filename);
     for(int i=0;i<(*weight).size();i++)
         myfile << std::setprecision(17) << (*weight)[i] <<"\n";
     myfile.close();
 };
 
-void loaddata(vector<double>* weight) {
-    std::ifstream  data("data.txt");
+void loaddata(vector<double>* weight, char* filename) {
+    std::ifstream  data(filename);
     std::string line;
     int x = 0;
     while ((std::getline(data, line)))
@@ -521,13 +521,19 @@ void loaddata(vector<double>* weight) {
     }
 };
 
+//char* othfilenames[20] = { (char*)"0000000000000000" ,(char*)"0000000000000000" ,(char*)"0000000000000000" };
+//char* mainfilename = (char*)"0000000000000000";
+int countofothfiles = 3;
 
-void optimize(SDL_Renderer* renderer) {
-
-    parseCSV((char*)"c:\\prenos\\NeuralFin\\TSLA.csv");
-    parseCSVother((char*)"c:\\prenos\\NeuralFin\\GOOG.csv");
-    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\MSFT.csv");
-    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\AMZN.csv");
+void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
+    char path[512];
+    sprintf_s(path,"c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
+    parseCSV(path);
+    for (int oi = 0; oi < argc - 3; oi++)
+    {
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[3 + oi]);
+        parseCSVother(path);
+    }
 
     findKoef();
 
@@ -659,13 +665,15 @@ void optimize(SDL_Renderer* renderer) {
     //ipusch(&input, i, j, 0, dataother[oo][i + j].close);
     }
 
-    loaddata(&weight);
+    //char path[512];
+    sprintf_s(path, "%s-weight.csv", argv[2]);
+    loaddata(&weight, path);
 
     cout << "steps 1" << endl;
     for (int step = 0; step < 5; step++)
     {
         //steps 1
-        for (int steps = 0; steps < 50; steps++)
+        for (int steps = 0; steps < 25; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
             if (countoff > 0)detectbest(0,0, &input, &output, &weight, &addkoef);
@@ -674,14 +682,14 @@ void optimize(SDL_Renderer* renderer) {
             //if (countoff > 3)detectbest(0,3, &input, &output, &weight, &addkoef);
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight);
-            savedata(&weight);
+            savedata(&weight,path);
             cout << countok << " " << countno << endl;
         }
         //steps 1
 
         cout << "steps 2" << endl;
         //steps 2
-        for (int steps = 0; steps < 30; steps++)
+        for (int steps = 0; steps < 15; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
             if (countoff > 0)detectbest(0, 0, &input, &output, &weight, &addkoef);
@@ -692,14 +700,14 @@ void optimize(SDL_Renderer* renderer) {
             if (countoff > 5)detectbest(0, 5, &input, &output, &weight, &addkoef);
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight);
-            savedata(&weight);
+            savedata(&weight,path);
             cout << countok << " " << countno << endl;
         }
         //steps 2
 
         cout << "steps 3" << endl;
         //steps 3
-        for (int steps = 0; steps < 15; steps++)
+        for (int steps = 0; steps < 8; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
             if (countoff > 0)detectbest(0, 0, &input, &output, &weight, &addkoef);
@@ -721,7 +729,7 @@ void optimize(SDL_Renderer* renderer) {
             //compoutputs(&input,&output,&weight);
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight);
-            savedata(&weight);
+            savedata(&weight,path);
             cout << countok << " " << countno << endl;
         }
         //steps 3
@@ -729,11 +737,15 @@ void optimize(SDL_Renderer* renderer) {
     //return 0;
 }
 
-void computenextday(SDL_Renderer* renderer) {
-    parseCSV((char*)"c:\\prenos\\NeuralFin\\TSLA.csv");
-    parseCSVother((char*)"c:\\prenos\\NeuralFin\\GOOG.csv");
-    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\MSFT.csv");
-    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\AMZN.csv");
+void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
+    char path[512];
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
+    parseCSV(path);
+    for (int oi = 0; oi < argc - 3; oi++)
+    {
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[3 + oi]);
+        parseCSVother(path);
+    }
 
     findKoef();
 
@@ -865,7 +877,9 @@ void computenextday(SDL_Renderer* renderer) {
         //ipusch(&input, i, j, 0, dataother[oo][i + j].close);
     }
 
-    loaddata(&weight);
+    //char path[512];
+    sprintf_s(path, "%s-weight.csv", argv[2]);
+    loaddata(&weight, path);
 
     compnextday(&input, &output, &weight);
     cout << (output)[rows-1] << " $" << endl;
@@ -873,27 +887,17 @@ void computenextday(SDL_Renderer* renderer) {
     cout << -(1-(output)[rows - 1]/datavect[datavect.size() - 1].close)*100 << " %" << endl;
 };
 
-#define RUN_OPTIMIZE 0
-#define RUN_NEXTDAY 1
-
 int main(int argc, char* argv[])
 {
-    int typeofrun = RUN_NEXTDAY;
-    typeofrun = RUN_OPTIMIZE;
     if (SDL_Init(SDL_INIT_VIDEO) == 0) {
         SDL_Window* window = NULL;
         SDL_Renderer* renderer = NULL;
 
         if (SDL_CreateWindowAndRenderer(rendx, rendy, 0, &window, &renderer) == 0) {
             //SDL_bool done = SDL_FALSE;
-            switch(typeofrun){
-            case RUN_OPTIMIZE:
-                optimize(renderer);
-                break;
-            case RUN_NEXTDAY:
-                computenextday(renderer);
-                break;
-            }
+            if((argc>1)&&(!strcmp("yes", argv[1])))
+                optimize(renderer, argc,argv);
+            computenextday(renderer, argc, argv);
             
             while (!done) {
                 SDL_Event event;
