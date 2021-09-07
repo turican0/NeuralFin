@@ -58,7 +58,7 @@ std::vector<data_t> dataother[100];
 
 int inputsize = 30;
 int outputsize = 1;
-int countoff = 4;// 4;
+int countoff = 6;// 4;
 int rowtrunc = 2500;// 10000;
 int countofder = 3;//3;
 
@@ -110,7 +110,7 @@ void findKoef() {
     double maxx = 0;
     for (data_t actdata : datavect)
         /*(x in datavect)*/ {
-        if (actdata.open > maxx)maxx = actdata.open;
+        if (actdata.close > maxx)maxx = actdata.close;
     }
     koef = maxx * 3;
 };
@@ -127,11 +127,11 @@ int mainz(int argc, char **argv) {
        // Segundo teste:
         vector<double> input;
         for(int i=0;i< inputsize;i++)
-            input.push_back(datavect[i+ addx].open/ koef);
+            input.push_back(datavect[i+ addx].close/ koef);
 
         vector<double> target;
         for (int i = 0; i < outputsize; i++)
-            target.push_back(datavect[i + inputsize + addx].open / koef);
+            target.push_back(datavect[i + inputsize + addx].close / koef);
 
         double learningRate  = 0.05;
         double momentum      = 1;
@@ -150,9 +150,9 @@ int mainz(int argc, char **argv) {
             for (int j = 0; j < 5; j++)
             {
                 for (int k = 0; k < inputsize; k++)
-                    input[k]=datavect[k + addx].open / koef;
+                    input[k]=datavect[k + addx].close / koef;
                 for (int k = 0; k < outputsize; k++)
-                    target[k]=datavect[k + inputsize + addx].open / koef;
+                    target[k]=datavect[k + inputsize + addx].close / koef;
                 n->train(input, target, bias, learningRate, momentum);
                 addx++;
                 cout << "Index: " << j << endl;
@@ -214,7 +214,7 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
     for (int i = 0; i < datavect.size(); i++)
     {
         int x1 = ((double)i / datavect.size()) * rendx;
-        int y1 = rendy - (datavect[i].open / (koef / 3) * rendy);
+        int y1 = rendy - (datavect[i].close / (koef / 3) * rendy);
         if (i > 0)
             SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
         oldx = x1;
@@ -227,7 +227,7 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
     for (int posi = 0; posi < datavect.size() - inputsize; posi++)
     {
         for (int k = 0; k < inputsize; k++)
-            input[k] = datavect[k + posi].open / koef;
+            input[k] = datavect[k + posi].close / koef;
 
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
 
@@ -240,12 +240,12 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
             else
             {
                 int prex1 = ((double)(posi + inputsize - 1) / datavect.size()) * rendx;
-                int prey1 = rendy - (datavect[posi + inputsize - 1].open / (koef / 3) * rendy);
+                int prey1 = rendy - (datavect[posi + inputsize - 1].close / (koef / 3) * rendy);
                 //int prex1 = ((double)posi / datavect.size()) * rendx;
-                //int prey1 = rendy - (datavect[posi].open / (koef / 3) * rendy);                
-                int truey1 = datavect[posi + inputsize - 1].open;
-                int truey2 = datavect[posi + inputsize].open;
-                int predy1 = datavect[posi + inputsize - 1].open;
+                //int prey1 = rendy - (datavect[posi].close / (koef / 3) * rendy);                
+                int truey1 = datavect[posi + inputsize - 1].close;
+                int truey2 = datavect[posi + inputsize].close;
+                int predy1 = datavect[posi + inputsize - 1].close;
                 int predy2 = y;
                 int truepos = 0;
                 double diff = abs(truey2 - y);
@@ -319,6 +319,26 @@ void compoutputs(vector<double>* input, vector<double>* output, vector<double>* 
     }
 };
 
+void compnextday(vector<double>* input, vector<double>* output, vector<double>* weight) {
+    for (int i = 0; i < rows; i++) {
+        (*output)[i] = 0;
+        for (int j = 0; j < cols; j++)
+        {
+            for (int k = 0; k < countoff; k++)
+                (*output)[i] += iget(0, input, i, j, k) * igetw(0, weight, /*i,*/ j, k);
+        }
+    }
+    for (int oo = 0; oo < countother; oo++)
+        for (int i = 0; i < rows; i++) {
+            //(*output)[i] = 0;
+            for (int j = 0; j < cols; j++)
+            {
+                for (int k = 0; k < countoff; k++)
+                    (*output)[i] += iget(oo + 1, input, i, j, k) * igetw(oo + 1, weight, /*i,*/ j, k);
+            }
+        }
+};
+
 double detecterror(vector<double>* output) {
     /*for (int i = 0; i < rows; i++) {
         (*output)[i] = 0;
@@ -330,7 +350,7 @@ double detecterror(vector<double>* output) {
     }*/
     double reserror = 0;
     for (int k = 0; k < (*output).size(); k++)
-        reserror += abs((*output)[k] - datavect[k + inputsize].open);
+        reserror += abs((*output)[k] - datavect[k + inputsize].close);
     return reserror;
 };
 
@@ -502,7 +522,7 @@ void loaddata(vector<double>* weight) {
 };
 
 
-int mainx(SDL_Renderer* renderer) {
+void optimize(SDL_Renderer* renderer) {
 
     parseCSV((char*)"c:\\prenos\\NeuralFin\\TSLA.csv");
     parseCSVother((char*)"c:\\prenos\\NeuralFin\\GOOG.csv");
@@ -540,28 +560,38 @@ int mainx(SDL_Renderer* renderer) {
         if (countofder > 0)
         for (int j = 0; j < inputsize; j++)
         {
-            if (countoff > 0)ipusch(0,&input, i, j, 0, datavect[i + j].open);
-            if (countoff > 1)ipusch(0,&input, i, j, 1, datavect[i + j].open * datavect[i + j].open);
-            if (countoff > 2)ipusch(0,&input, i, j, 2, sqrt(abs(datavect[i + j].open)));
-            if (countoff > 3)ipusch(0,&input, i, j, 3, log(1 + abs(datavect[i + j].open)));
+            if (countoff > 0)ipusch(0,&input, i, j, 0, datavect[i + j].close);
+            if (countoff > 1)ipusch(0,&input, i, j, 1, datavect[i + j].close * datavect[i + j].close);
+            if (countoff > 2)ipusch(0,&input, i, j, 2, sqrt(abs(datavect[i + j].close)));
+            if (countoff > 3)ipusch(0,&input, i, j, 3, log(1 + abs(datavect[i + j].close)));
+            if (countoff > 4)ipusch(0, &input, i, j, 4, datavect[i + j].high);
+            if (countoff > 5)ipusch(0, &input, i, j, 5, datavect[i + j].low);
         }
         if (countofder > 1)
         for (int j = 0; j < inputsize - 1; j++)
         {
-            double der1 = datavect[i + j + 1].open - datavect[i + j].open;
+            double der1 = datavect[i + j + 1].close - datavect[i + j].close;
             if (countoff > 0)ipusch(0, &input, i, j + inputsize, 0, der1);
             if (countoff > 1)ipusch(0, &input, i, j + inputsize, 1, der1 * der1);
             if (countoff > 2)ipusch(0, &input, i, j + inputsize, 2, sqrt(abs(der1)));
             if (countoff > 3)ipusch(0, &input, i, j + inputsize, 3, log(1 + abs(der1)));
+            der1 = datavect[i + j + 1].high - datavect[i + j].high;
+            if (countoff > 4)ipusch(0, &input, i, j + inputsize, 4, der1);
+            der1 = datavect[i + j + 1].low - datavect[i + j].low;
+            if (countoff > 5)ipusch(0, &input, i, j + inputsize, 5, der1);
         }
         if (countofder > 2)
         for (int j = 0; j < inputsize - 2; j++)
         {
-            double der3 = datavect[i + j + 2].open - 2 * datavect[i + j + 1].open + datavect[i + j].open;
+            double der3 = datavect[i + j + 2].close - 2 * datavect[i + j + 1].close + datavect[i + j].close;
             if (countoff > 0)ipusch(0, &input, i, j + inputsize * 2 - 1, 0, der3);
             if (countoff > 1)ipusch(0, &input, i, j + inputsize * 2 - 1, 1, der3 * der3);
             if (countoff > 2)ipusch(0, &input, i, j + inputsize * 2 - 1, 2, sqrt(abs(der3)));
             if (countoff > 3)ipusch(0, &input, i, j + inputsize * 2 - 1, 3, log(1 + abs(der3)));
+            der3 = datavect[i + j + 2].high - 2 * datavect[i + j + 1].high + datavect[i + j].high;
+            if (countoff > 4)ipusch(0, &input, i, j + inputsize * 2 - 1, 4, der3);
+            der3 = datavect[i + j + 2].low - 2 * datavect[i + j + 1].high + datavect[i + j].low;
+            if (countoff > 5)ipusch(0, &input, i, j + inputsize * 2 - 1, 5, der3);
         }
     }
     //init
@@ -575,28 +605,38 @@ int mainx(SDL_Renderer* renderer) {
         if (countofder > 0)
         for (int j = 0; j < inputsize; j++)
         {
-            if (countoff > 0)ipusch(oo + 1,&input, i, j, 0, dataother[oo][i + j].open);
-            if (countoff > 1)ipusch(oo + 1,&input, i, j, 1, dataother[oo][i + j].open * dataother[oo][i + j].open);
-            if (countoff > 2)ipusch(oo + 1, &input, i, j, 2, sqrt(abs(dataother[oo][i + j].open)));
-            if (countoff > 3)ipusch(oo + 1, &input, i, j, 3, log(1 + abs(dataother[oo][i + j].open)));
+            if (countoff > 0)ipusch(oo + 1,&input, i, j, 0, dataother[oo][i + j].close);
+            if (countoff > 1)ipusch(oo + 1,&input, i, j, 1, dataother[oo][i + j].close * dataother[oo][i + j].close);
+            if (countoff > 2)ipusch(oo + 1, &input, i, j, 2, sqrt(abs(dataother[oo][i + j].close)));
+            if (countoff > 3)ipusch(oo + 1, &input, i, j, 3, log(1 + abs(dataother[oo][i + j].close)));
+            if (countoff > 4)ipusch(oo + 1, &input, i, j, 4, dataother[oo][i + j].high);
+            if (countoff > 5)ipusch(oo + 1, &input, i, j, 5, dataother[oo][i + j].low);
         }
         if (countofder > 1)
         for (int j = 0; j < inputsize - 1; j++)
         {
-            double der1 = dataother[oo][i + j + 1].open - dataother[oo][i + j].open;
+            double der1 = dataother[oo][i + j + 1].close - dataother[oo][i + j].close;
             if (countoff > 0)ipusch(oo + 1, &input, i, j + inputsize, 0, der1);
             if (countoff > 1)ipusch(oo + 1, &input, i, j + inputsize, 1, der1 * der1);
             if (countoff > 2)ipusch(oo + 1, &input, i, j + inputsize, 2, sqrt(abs(der1)));
             if (countoff > 3)ipusch(oo + 1, &input, i, j + inputsize, 3, log(1 + abs(der1)));
+            der1 = dataother[oo][i + j + 1].high - dataother[oo][i + j].high;
+            if (countoff > 4)ipusch(oo + 1, &input, i, j + inputsize, 4, der1);
+            der1 = dataother[oo][i + j + 1].low - dataother[oo][i + j].low;
+            if (countoff > 5)ipusch(oo + 1, &input, i, j + inputsize, 5, der1);
         }
         if (countofder > 2)
         for (int j = 0; j < inputsize - 2; j++)
         {
-            double der3 = dataother[oo][i + j + 2].open - 2*dataother[oo][i + j + 1].open+ dataother[oo][i + j].open;
+            double der3 = dataother[oo][i + j + 2].close - 2*dataother[oo][i + j + 1].close + dataother[oo][i + j].close;
             if (countoff > 0)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 0, der3);
             if (countoff > 1)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 1, der3 * der3);
             if (countoff > 2)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 2, sqrt(abs(der3)));
             if (countoff > 3)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 3, log(1 + abs(der3)));
+            der3 = dataother[oo][i + j + 2].high - 2 * dataother[oo][i + j + 1].high + dataother[oo][i + j].high;
+            if (countoff > 4)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 4, der3);
+            der3 = dataother[oo][i + j + 2].low - 2 * dataother[oo][i + j + 1].low + dataother[oo][i + j].low;
+            if (countoff > 5)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 5, der3);
         }
     }
     //init2
@@ -605,6 +645,8 @@ int mainx(SDL_Renderer* renderer) {
     if (countoff > 1)cleanweights(0,1, &weight);
     if (countoff > 2)cleanweights(0,2, &weight);
     if (countoff > 3)cleanweights(0,3, &weight);
+    if (countoff > 4)cleanweights(0, 4, &weight);
+    if (countoff > 5)cleanweights(0, 5, &weight);
 
     for (int oo = 0; oo < countother; oo++)
     {
@@ -612,7 +654,9 @@ int mainx(SDL_Renderer* renderer) {
         if (countoff > 1)cleanweights(oo + 1, 1, &weight);
         if (countoff > 2)cleanweights(oo + 1, 2, &weight);
         if (countoff > 3)cleanweights(oo + 1, 3, &weight);
-    //ipusch(&input, i, j, 0, dataother[oo][i + j].open);
+        if (countoff > 4)cleanweights(oo + 1, 4, &weight);
+        if (countoff > 5)cleanweights(oo + 1, 5, &weight);
+    //ipusch(&input, i, j, 0, dataother[oo][i + j].close);
     }
 
     loaddata(&weight);
@@ -644,6 +688,8 @@ int mainx(SDL_Renderer* renderer) {
             if (countoff > 1)detectbest(0, 1, &input, &output, &weight, &addkoef);
             if (countoff > 2)detectbest(0, 2, &input, &output, &weight, &addkoef);
             if (countoff > 3)detectbest(0, 3, &input, &output, &weight, &addkoef);
+            if (countoff > 4)detectbest(0, 4, &input, &output, &weight, &addkoef);
+            if (countoff > 5)detectbest(0, 5, &input, &output, &weight, &addkoef);
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight);
             savedata(&weight);
@@ -660,13 +706,17 @@ int mainx(SDL_Renderer* renderer) {
             if (countoff > 1)detectbest(0, 1, &input, &output, &weight, &addkoef);
             if (countoff > 2)detectbest(0, 2, &input, &output, &weight, &addkoef);
             if (countoff > 3)detectbest(0, 3, &input, &output, &weight, &addkoef);
+            if (countoff > 4)detectbest(0, 4, &input, &output, &weight, &addkoef);
+            if (countoff > 5)detectbest(0, 5, &input, &output, &weight, &addkoef);
             for (int oo = 0; oo < countother; oo++)
             {
                 if (countoff > 0)detectbest(oo + 1, 0, &input, &output, &weight, &addkoef);
                 if (countoff > 1)detectbest(oo + 1, 1, &input, &output, &weight, &addkoef);
                 if (countoff > 2)detectbest(oo + 1, 2, &input, &output, &weight, &addkoef);
                 if (countoff > 3)detectbest(oo + 1, 3, &input, &output, &weight, &addkoef);
-                //ipusch(&input, i, j, 0, dataother[oo][i + j].open);
+                if (countoff > 4)detectbest(oo + 1, 4, &input, &output, &weight, &addkoef);
+                if (countoff > 5)detectbest(oo + 1, 5, &input, &output, &weight, &addkoef);
+                //ipusch(&input, i, j, 0, dataother[oo][i + j].close);
             }
             //compoutputs(&input,&output,&weight);
             cout << steps << " - ";
@@ -676,19 +726,175 @@ int mainx(SDL_Renderer* renderer) {
         }
         //steps 3
     }
-    return 0;
+    //return 0;
 }
 
+void computenextday(SDL_Renderer* renderer) {
+    parseCSV((char*)"c:\\prenos\\NeuralFin\\TSLA.csv");
+    parseCSVother((char*)"c:\\prenos\\NeuralFin\\GOOG.csv");
+    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\MSFT.csv");
+    //parseCSVother((char*)"c:\\prenos\\NeuralFin\\AMZN.csv");
+
+    findKoef();
+
+    cols = 0;
+    if (countofder > 0)cols += inputsize;
+    if (countofder > 1)cols += inputsize - 1;
+    if (countofder > 2)cols += inputsize - 2;
+
+    //cols = (inputsize + (inputsize - 1) + (inputsize - 2));
+    //int cols2 = (inputsize + (inputsize - 1) + (inputsize - 2)) * countoff;
+    rows = datavect.size() - inputsize+1 /*- outputsize*/;
+    vector<double> input(cols * rows * countoff * (1 + countother));
+    vector<double> weight(cols/* * rows*/ * countoff * (1 + countother));
+    vector<double> addkoef(cols/* * rows*/ * countoff * (1 + countother));
+
+    //vector<double> inputoth(countother *cols * rows * countoff);
+
+    vector<double> output(rows);
+    for (int i = 0; i < weight.size(); i++)
+    {
+        weight[i] = 1;
+        addkoef[i] = 0.1;
+    }
+
+    //init
+    for (int i = 0; i < rows; i++)
+    {
+        //if (i == 62)
+        //   cout << i;
+        if (countofder > 0)
+            for (int j = 0; j < inputsize; j++)
+            {
+                if (countoff > 0)ipusch(0, &input, i, j, 0, datavect[i + j].close);
+                if (countoff > 1)ipusch(0, &input, i, j, 1, datavect[i + j].close * datavect[i + j].close);
+                if (countoff > 2)ipusch(0, &input, i, j, 2, sqrt(abs(datavect[i + j].close)));
+                if (countoff > 3)ipusch(0, &input, i, j, 3, log(1 + abs(datavect[i + j].close)));
+                if (countoff > 4)ipusch(0, &input, i, j, 4, datavect[i + j].high);
+                if (countoff > 5)ipusch(0, &input, i, j, 5, datavect[i + j].low);
+            }
+        if (countofder > 1)
+            for (int j = 0; j < inputsize - 1; j++)
+            {
+                double der1 = datavect[i + j + 1].close - datavect[i + j].close;
+                if (countoff > 0)ipusch(0, &input, i, j + inputsize, 0, der1);
+                if (countoff > 1)ipusch(0, &input, i, j + inputsize, 1, der1 * der1);
+                if (countoff > 2)ipusch(0, &input, i, j + inputsize, 2, sqrt(abs(der1)));
+                if (countoff > 3)ipusch(0, &input, i, j + inputsize, 3, log(1 + abs(der1)));
+                der1 = datavect[i + j + 1].high - datavect[i + j].high;
+                if (countoff > 4)ipusch(0, &input, i, j + inputsize, 4, der1);
+                der1 = datavect[i + j + 1].low - datavect[i + j].low;
+                if (countoff > 5)ipusch(0, &input, i, j + inputsize, 5, der1);
+            }
+        if (countofder > 2)
+            for (int j = 0; j < inputsize - 2; j++)
+            {
+                double der3 = datavect[i + j + 2].close - 2 * datavect[i + j + 1].close + datavect[i + j].close;
+                if (countoff > 0)ipusch(0, &input, i, j + inputsize * 2 - 1, 0, der3);
+                if (countoff > 1)ipusch(0, &input, i, j + inputsize * 2 - 1, 1, der3 * der3);
+                if (countoff > 2)ipusch(0, &input, i, j + inputsize * 2 - 1, 2, sqrt(abs(der3)));
+                if (countoff > 3)ipusch(0, &input, i, j + inputsize * 2 - 1, 3, log(1 + abs(der3)));
+                der3 = datavect[i + j + 2].high - 2 * datavect[i + j + 1].high + datavect[i + j].high;
+                if (countoff > 4)ipusch(0, &input, i, j + inputsize * 2 - 1, 4, der3);
+                der3 = datavect[i + j + 2].low - 2 * datavect[i + j + 1].high + datavect[i + j].low;
+                if (countoff > 5)ipusch(0, &input, i, j + inputsize * 2 - 1, 5, der3);
+            }
+    }
+    //init
+
+    //init2
+    for (int oo = 0; oo < countother; oo++)
+        for (int i = 0; i < rows; i++)
+        {
+            //if (i == 62)
+            //   cout << i;
+            if (countofder > 0)
+                for (int j = 0; j < inputsize; j++)
+                {
+                    if (countoff > 0)ipusch(oo + 1, &input, i, j, 0, dataother[oo][i + j].close);
+                    if (countoff > 1)ipusch(oo + 1, &input, i, j, 1, dataother[oo][i + j].close * dataother[oo][i + j].close);
+                    if (countoff > 2)ipusch(oo + 1, &input, i, j, 2, sqrt(abs(dataother[oo][i + j].close)));
+                    if (countoff > 3)ipusch(oo + 1, &input, i, j, 3, log(1 + abs(dataother[oo][i + j].close)));
+                    if (countoff > 4)ipusch(oo + 1, &input, i, j, 4, dataother[oo][i + j].high);
+                    if (countoff > 5)ipusch(oo + 1, &input, i, j, 5, dataother[oo][i + j].low);
+                }
+            if (countofder > 1)
+                for (int j = 0; j < inputsize - 1; j++)
+                {
+                    double der1 = dataother[oo][i + j + 1].close - dataother[oo][i + j].close;
+                    if (countoff > 0)ipusch(oo + 1, &input, i, j + inputsize, 0, der1);
+                    if (countoff > 1)ipusch(oo + 1, &input, i, j + inputsize, 1, der1 * der1);
+                    if (countoff > 2)ipusch(oo + 1, &input, i, j + inputsize, 2, sqrt(abs(der1)));
+                    if (countoff > 3)ipusch(oo + 1, &input, i, j + inputsize, 3, log(1 + abs(der1)));
+                    der1 = dataother[oo][i + j + 1].high - dataother[oo][i + j].high;
+                    if (countoff > 4)ipusch(oo + 1, &input, i, j + inputsize, 4, der1);
+                    der1 = dataother[oo][i + j + 1].low - dataother[oo][i + j].low;
+                    if (countoff > 5)ipusch(oo + 1, &input, i, j + inputsize, 5, der1);
+                }
+            if (countofder > 2)
+                for (int j = 0; j < inputsize - 2; j++)
+                {
+                    double der3 = dataother[oo][i + j + 2].close - 2 * dataother[oo][i + j + 1].close + dataother[oo][i + j].close;
+                    if (countoff > 0)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 0, der3);
+                    if (countoff > 1)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 1, der3 * der3);
+                    if (countoff > 2)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 2, sqrt(abs(der3)));
+                    if (countoff > 3)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 3, log(1 + abs(der3)));
+                    der3 = dataother[oo][i + j + 2].high - 2 * dataother[oo][i + j + 1].high + dataother[oo][i + j].high;
+                    if (countoff > 4)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 4, der3);
+                    der3 = dataother[oo][i + j + 2].low - 2 * dataother[oo][i + j + 1].low + dataother[oo][i + j].low;
+                    if (countoff > 5)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 5, der3);
+                }
+        }
+    //init2
+
+    if (countoff > 0)cleanweights(0, 0, &weight);
+    if (countoff > 1)cleanweights(0, 1, &weight);
+    if (countoff > 2)cleanweights(0, 2, &weight);
+    if (countoff > 3)cleanweights(0, 3, &weight);
+    if (countoff > 4)cleanweights(0, 4, &weight);
+    if (countoff > 5)cleanweights(0, 5, &weight);
+
+    for (int oo = 0; oo < countother; oo++)
+    {
+        if (countoff > 0)cleanweights(oo + 1, 0, &weight);
+        if (countoff > 1)cleanweights(oo + 1, 1, &weight);
+        if (countoff > 2)cleanweights(oo + 1, 2, &weight);
+        if (countoff > 3)cleanweights(oo + 1, 3, &weight);
+        if (countoff > 4)cleanweights(oo + 1, 4, &weight);
+        if (countoff > 5)cleanweights(oo + 1, 5, &weight);
+        //ipusch(&input, i, j, 0, dataother[oo][i + j].close);
+    }
+
+    loaddata(&weight);
+
+    compnextday(&input, &output, &weight);
+    cout << (output)[rows-1] << " $" << endl;
+    cout << (output)[rows - 1]- datavect[datavect.size()-1].close << " $" << endl;
+    cout << -(1-(output)[rows - 1]/datavect[datavect.size() - 1].close)*100 << " %" << endl;
+};
+
+#define RUN_OPTIMIZE 0
+#define RUN_NEXTDAY 1
 
 int main(int argc, char* argv[])
 {
+    int typeofrun = RUN_NEXTDAY;
+    typeofrun = RUN_OPTIMIZE;
     if (SDL_Init(SDL_INIT_VIDEO) == 0) {
         SDL_Window* window = NULL;
         SDL_Renderer* renderer = NULL;
 
         if (SDL_CreateWindowAndRenderer(rendx, rendy, 0, &window, &renderer) == 0) {
             //SDL_bool done = SDL_FALSE;
-            mainx(renderer);
+            switch(typeofrun){
+            case RUN_OPTIMIZE:
+                optimize(renderer);
+                break;
+            case RUN_NEXTDAY:
+                computenextday(renderer);
+                break;
+            }
+            
             while (!done) {
                 SDL_Event event;
 
@@ -720,4 +926,3 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-//closed, NO open
