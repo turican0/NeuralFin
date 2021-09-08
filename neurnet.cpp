@@ -351,14 +351,14 @@ void compoutputs(vector<double>* input, vector<double>* output, vector<double>* 
         }
     }
 };
-
+/*
 void compnextday(vector<double>* input, vector<double>* output, vector<double>* weight) {
     for (int i = 0; i < rows; i++) {
         (*output)[i] = 0;
         for (int j = 0; j < cols; j++)
         {
             for (int k = 0; k < countoff; k++)
-                (*output)[i] += iget(0, input, i, j, k) * igetw(0, weight, /*i,*/ j, k);
+                (*output)[i] += iget(0, input, i, j, k) * igetw(0, weight,  j, k);
         }
     }
     for (int oo = 0; oo < countother; oo++)
@@ -367,10 +367,10 @@ void compnextday(vector<double>* input, vector<double>* output, vector<double>* 
             for (int j = 0; j < cols; j++)
             {
                 for (int k = 0; k < countoff; k++)
-                    (*output)[i] += iget(oo + 1, input, i, j, k) * igetw(oo + 1, weight, /*i,*/ j, k);
+                    (*output)[i] += iget(oo + 1, input, i, j, k) * igetw(oo + 1, weight,  j, k);
             }
         }
-};
+};*/
 
 double detecterror(vector<double>* output) {
     /*for (int i = 0; i < rows; i++) {
@@ -543,6 +543,13 @@ void savedata(vector<double>* weight,char* filename) {
     myfile.close();
 };
 
+void savetobestlog(char* buffer) {
+    ofstream myfile;
+    myfile.open("addlog.csv", std::ios_base::app);
+    myfile << buffer << endl;
+    myfile.close();
+};
+
 void loaddata(vector<double>* weight, char* filename) {
     std::ifstream  data(filename);
     std::string line;
@@ -708,7 +715,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
     for (int step = 0; step < 5; step++)
     {
         //steps 1
-        for (int steps = 0; steps < 25; steps++)
+        for (int steps = 0; steps < 20; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
             if (countoff > 0)detectbest(0,0, &input, &output, &weight, &addkoef);
@@ -725,7 +732,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
 
         cout << "steps 2" << endl;
         //steps 2
-        for (int steps = 0; steps < 15; steps++)
+        for (int steps = 0; steps < 10; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
             if (countoff > 0)detectbest(0, 0, &input, &output, &weight, &addkoef);
@@ -749,7 +756,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
 
         cout << "steps 3" << endl;
         //steps 3
-        for (int steps = 0; steps < 8; steps++)
+        for (int steps = 0; steps < 5; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
             if (countoff > 0)detectbest(0, 0, &input, &output, &weight, &addkoef);
@@ -767,17 +774,17 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             for (int oo = 0; oo < countother; oo++)
             {
                 if (countoff > 0)detectbest(oo + 1, 0, &input, &output, &weight, &addkoef);
-                cout << countother <<"x0 ";
+                cout << oo <<"x0 ";
                 if (countoff > 1)detectbest(oo + 1, 1, &input, &output, &weight, &addkoef);
-                cout << countother << "x1 ";
+                cout << oo << "x1 ";
                 if (countoff > 2)detectbest(oo + 1, 2, &input, &output, &weight, &addkoef);
-                cout << countother << "x2 ";
+                cout << oo << "x2 ";
                 if (countoff > 3)detectbest(oo + 1, 3, &input, &output, &weight, &addkoef);
-                cout << countother << "x3 ";
+                cout << oo << "x3 ";
                 if (countoff > 4)detectbest(oo + 1, 4, &input, &output, &weight, &addkoef);
-                cout << countother << "x4 ";
+                cout << oo << "x4 ";
                 if (countoff > 5)detectbest(oo + 1, 5, &input, &output, &weight, &addkoef);
-                cout << countother << "x5 ";
+                cout << oo << "x5 ";
                 //ipusch(&input, i, j, 0, dataother[oo][i + j].close);
             }
             cout << endl;
@@ -938,16 +945,22 @@ void printscore(SDL_Renderer* renderer, int argc, char* argv[]) {
     sprintf_s(path, "%s-weight.csv", argv[2]);
     loaddata(&weight, path);
 
+    compoutputs(&input, &output, &weight);
     drawgraph(renderer, &output, 0, &weight);
     cout << "SCORE: " << countok << " " << countno << endl;
 }
 
 void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     cout << "--- " << argv[2] << " - " << argv[1] << " ---" << endl;
+    char buffer[512];
+    sprintf_s(buffer, "--- %s ---", argv[2]);
+    savetobestlog(buffer);
     char path[512];
     sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
+    sprintf_s(buffer, "date: %d-%d-%d", (int)datavect[datavect.size() - 1].ear, (int)datavect[datavect.size() - 1].moon, (int)datavect[datavect.size() - 1].day);
+    savetobestlog(buffer);
     for (int oi = 0; oi < argc - 3; oi++)
     {
         sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[3 + oi]);
@@ -1087,11 +1100,57 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     //char path[512];
     sprintf_s(path, "%s-weight.csv", argv[2]);
     loaddata(&weight, path);
-
-    compnextday(&input, &output, &weight);
-    cout << (output)[rows - 1] << " $" << endl;
+    compoutputs(&input, &output, &weight);
+    //compnextday(&input, &output, &weight);
+    cout << datavect[datavect.size() - 1].close << " -> " << (output)[rows - 1] << " $" << endl;
     cout << (output)[rows - 1]- datavect[datavect.size()-1].close << " $" << endl;
     cout << -(1-(output)[rows - 1]/datavect[datavect.size() - 1].close)*100 << " %" << endl;
+
+    
+    sprintf_s(buffer, "DIFF: %f$ -> %f$ (%f$)", datavect[datavect.size() - 1].close, (output)[rows - 1], (output)[rows - 1] - datavect[datavect.size() - 1].close);
+    savetobestlog(buffer);
+    sprintf_s(buffer, "%f", -(1 - (output)[rows - 1] / datavect[datavect.size() - 1].close) * 100);
+    savetobestlog(buffer);
+};
+
+void sortbest() {
+    std::ifstream  data("addlog.csv");
+    std::string line;
+    vector<std::string> lines;
+    int x = 0;
+    while ((std::getline(data, line)))
+    {
+        lines.push_back(line);
+    }
+    int percols = 4;
+    std::string templine;
+    int count = lines.size()/ percols;
+    for(int i=1;i< count;i++)
+        for (int j = 0; j < i; j++)
+        {
+            double comp1 = stod(lines[j * percols + 3]);
+            double comp2 = stod(lines[i * percols + 3]);
+            if (comp1 < comp2)
+            {
+                templine = lines[j * percols + 0];
+                lines[j * percols + 0] = lines[i * percols + 0];
+                lines[i * percols + 0] = templine;
+
+                templine = lines[j * percols + 1];
+                lines[j * percols + 1] = lines[i * percols + 1];
+                lines[i * percols + 1] = templine;
+
+                templine = lines[j * percols + 2];
+                lines[j * percols + 2] = lines[i * percols + 2];
+                lines[i * percols + 2] = templine;
+
+                templine = lines[j * percols + 3];
+                lines[j * percols + 03] = lines[i * percols + 3];
+                lines[i * percols + 3] = templine;
+            }
+        }
+    for (int i = 0; i < lines.size(); i++)
+        cout << lines[i] << endl;
 };
 
 int main(int argc, char* argv[])
@@ -1102,14 +1161,16 @@ int main(int argc, char* argv[])
 
         if (SDL_CreateWindowAndRenderer(rendx, rendy, 0, &window, &renderer) == 0) {
             //SDL_bool done = SDL_FALSE;
-            if((argc>1)&&(!strcmp("yes", argv[1])))
-                optimize(renderer, argc,argv);
+            if ((argc > 1) && (!strcmp("yes", argv[1])))
+                optimize(renderer, argc, argv);
             else if ((argc > 1) && (!strcmp("score", argv[1])))
                 printscore(renderer, argc, argv);
+            else if ((argc > 1) && (!strcmp("sort", argv[1])))
+                sortbest();
             else
                 computenextday(renderer, argc, argv);
             
-            while (!done) {
+            /*while (!done) {
                 SDL_Event event;
 
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -1126,7 +1187,7 @@ int main(int argc, char* argv[])
                         done = SDL_TRUE;
                     }
                 }
-            }
+            }*/
         }
 
         if (renderer) {

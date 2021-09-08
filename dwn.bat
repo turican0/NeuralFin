@@ -26,11 +26,4 @@ del "c:\prenos\NeuralFin\FTNT.US@api_token=61378a6b172091.49892663"
 c:\prenos\NeuralFin\wget\bin\wget -P c:\prenos\NeuralFin "https://eodhistoricaldata.com/api/eod/FTNT.US?api_token=61378a6b172091.49892663"
 copy "c:\prenos\NeuralFin\FTNT.US@api_token=61378a6b172091.49892663" "c:\prenos\NeuralFin\FTNT.csv"
 
-
-FB
-GOOG
-MSFT
-AMZN
-SE
-MELI
-FTNT
+PAUSE
