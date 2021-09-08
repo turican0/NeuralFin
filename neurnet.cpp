@@ -81,6 +81,7 @@ void parseCSV(char* file) {
         x++;
         if (x > rowtrunc)break;
     }
+    datavect.pop_back();
 };
 
 void parseCSVother(char* file) {
@@ -526,9 +527,11 @@ void loaddata(vector<double>* weight, char* filename) {
 int countofothfiles = 3;
 
 void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
+    cout << "--- " << argv[2] << " - " << argv[1] << " ---" << endl;
     char path[512];
     sprintf_s(path,"c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
     parseCSV(path);
+    cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
     for (int oi = 0; oi < argc - 3; oi++)
     {
         sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[3 + oi]);
@@ -737,10 +740,162 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
     //return 0;
 }
 
-void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
+void printscore(SDL_Renderer* renderer, int argc, char* argv[]) {
+    cout << "--- " << argv[2] << " - " << argv[1] << " ---" << endl;
     char path[512];
     sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
     parseCSV(path);
+    cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
+    for (int oi = 0; oi < argc - 3; oi++)
+    {
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[3 + oi]);
+        parseCSVother(path);
+    }
+
+    findKoef();
+
+    cols = 0;
+    if (countofder > 0)cols += inputsize;
+    if (countofder > 1)cols += inputsize - 1;
+    if (countofder > 2)cols += inputsize - 2;
+
+    //cols = (inputsize + (inputsize - 1) + (inputsize - 2));
+    //int cols2 = (inputsize + (inputsize - 1) + (inputsize - 2)) * countoff;
+    rows = datavect.size() - inputsize /*- outputsize*/;
+    vector<double> input(cols * rows * countoff * (1 + countother));
+    vector<double> weight(cols/* * rows*/ * countoff * (1 + countother));
+    vector<double> addkoef(cols/* * rows*/ * countoff * (1 + countother));
+
+    //vector<double> inputoth(countother *cols * rows * countoff);
+
+    vector<double> output(rows);
+    for (int i = 0; i < weight.size(); i++)
+    {
+        weight[i] = 1;
+        addkoef[i] = 0.1;
+    }
+
+    //init
+    for (int i = 0; i < rows; i++)
+    {
+        //if (i == 62)
+        //   cout << i;
+        if (countofder > 0)
+            for (int j = 0; j < inputsize; j++)
+            {
+                if (countoff > 0)ipusch(0, &input, i, j, 0, datavect[i + j].close);
+                if (countoff > 1)ipusch(0, &input, i, j, 1, datavect[i + j].close * datavect[i + j].close);
+                if (countoff > 2)ipusch(0, &input, i, j, 2, sqrt(abs(datavect[i + j].close)));
+                if (countoff > 3)ipusch(0, &input, i, j, 3, log(1 + abs(datavect[i + j].close)));
+                if (countoff > 4)ipusch(0, &input, i, j, 4, datavect[i + j].high);
+                if (countoff > 5)ipusch(0, &input, i, j, 5, datavect[i + j].low);
+            }
+        if (countofder > 1)
+            for (int j = 0; j < inputsize - 1; j++)
+            {
+                double der1 = datavect[i + j + 1].close - datavect[i + j].close;
+                if (countoff > 0)ipusch(0, &input, i, j + inputsize, 0, der1);
+                if (countoff > 1)ipusch(0, &input, i, j + inputsize, 1, der1 * der1);
+                if (countoff > 2)ipusch(0, &input, i, j + inputsize, 2, sqrt(abs(der1)));
+                if (countoff > 3)ipusch(0, &input, i, j + inputsize, 3, log(1 + abs(der1)));
+                der1 = datavect[i + j + 1].high - datavect[i + j].high;
+                if (countoff > 4)ipusch(0, &input, i, j + inputsize, 4, der1);
+                der1 = datavect[i + j + 1].low - datavect[i + j].low;
+                if (countoff > 5)ipusch(0, &input, i, j + inputsize, 5, der1);
+            }
+        if (countofder > 2)
+            for (int j = 0; j < inputsize - 2; j++)
+            {
+                double der3 = datavect[i + j + 2].close - 2 * datavect[i + j + 1].close + datavect[i + j].close;
+                if (countoff > 0)ipusch(0, &input, i, j + inputsize * 2 - 1, 0, der3);
+                if (countoff > 1)ipusch(0, &input, i, j + inputsize * 2 - 1, 1, der3 * der3);
+                if (countoff > 2)ipusch(0, &input, i, j + inputsize * 2 - 1, 2, sqrt(abs(der3)));
+                if (countoff > 3)ipusch(0, &input, i, j + inputsize * 2 - 1, 3, log(1 + abs(der3)));
+                der3 = datavect[i + j + 2].high - 2 * datavect[i + j + 1].high + datavect[i + j].high;
+                if (countoff > 4)ipusch(0, &input, i, j + inputsize * 2 - 1, 4, der3);
+                der3 = datavect[i + j + 2].low - 2 * datavect[i + j + 1].high + datavect[i + j].low;
+                if (countoff > 5)ipusch(0, &input, i, j + inputsize * 2 - 1, 5, der3);
+            }
+    }
+    //init
+
+    //init2
+    for (int oo = 0; oo < countother; oo++)
+        for (int i = 0; i < rows; i++)
+        {
+            //if (i == 62)
+            //   cout << i;
+            if (countofder > 0)
+                for (int j = 0; j < inputsize; j++)
+                {
+                    if (countoff > 0)ipusch(oo + 1, &input, i, j, 0, dataother[oo][i + j].close);
+                    if (countoff > 1)ipusch(oo + 1, &input, i, j, 1, dataother[oo][i + j].close * dataother[oo][i + j].close);
+                    if (countoff > 2)ipusch(oo + 1, &input, i, j, 2, sqrt(abs(dataother[oo][i + j].close)));
+                    if (countoff > 3)ipusch(oo + 1, &input, i, j, 3, log(1 + abs(dataother[oo][i + j].close)));
+                    if (countoff > 4)ipusch(oo + 1, &input, i, j, 4, dataother[oo][i + j].high);
+                    if (countoff > 5)ipusch(oo + 1, &input, i, j, 5, dataother[oo][i + j].low);
+                }
+            if (countofder > 1)
+                for (int j = 0; j < inputsize - 1; j++)
+                {
+                    double der1 = dataother[oo][i + j + 1].close - dataother[oo][i + j].close;
+                    if (countoff > 0)ipusch(oo + 1, &input, i, j + inputsize, 0, der1);
+                    if (countoff > 1)ipusch(oo + 1, &input, i, j + inputsize, 1, der1 * der1);
+                    if (countoff > 2)ipusch(oo + 1, &input, i, j + inputsize, 2, sqrt(abs(der1)));
+                    if (countoff > 3)ipusch(oo + 1, &input, i, j + inputsize, 3, log(1 + abs(der1)));
+                    der1 = dataother[oo][i + j + 1].high - dataother[oo][i + j].high;
+                    if (countoff > 4)ipusch(oo + 1, &input, i, j + inputsize, 4, der1);
+                    der1 = dataother[oo][i + j + 1].low - dataother[oo][i + j].low;
+                    if (countoff > 5)ipusch(oo + 1, &input, i, j + inputsize, 5, der1);
+                }
+            if (countofder > 2)
+                for (int j = 0; j < inputsize - 2; j++)
+                {
+                    double der3 = dataother[oo][i + j + 2].close - 2 * dataother[oo][i + j + 1].close + dataother[oo][i + j].close;
+                    if (countoff > 0)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 0, der3);
+                    if (countoff > 1)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 1, der3 * der3);
+                    if (countoff > 2)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 2, sqrt(abs(der3)));
+                    if (countoff > 3)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 3, log(1 + abs(der3)));
+                    der3 = dataother[oo][i + j + 2].high - 2 * dataother[oo][i + j + 1].high + dataother[oo][i + j].high;
+                    if (countoff > 4)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 4, der3);
+                    der3 = dataother[oo][i + j + 2].low - 2 * dataother[oo][i + j + 1].low + dataother[oo][i + j].low;
+                    if (countoff > 5)ipusch(oo + 1, &input, i, j + inputsize * 2 - 1, 5, der3);
+                }
+        }
+    //init2
+
+    if (countoff > 0)cleanweights(0, 0, &weight);
+    if (countoff > 1)cleanweights(0, 1, &weight);
+    if (countoff > 2)cleanweights(0, 2, &weight);
+    if (countoff > 3)cleanweights(0, 3, &weight);
+    if (countoff > 4)cleanweights(0, 4, &weight);
+    if (countoff > 5)cleanweights(0, 5, &weight);
+
+    for (int oo = 0; oo < countother; oo++)
+    {
+        if (countoff > 0)cleanweights(oo + 1, 0, &weight);
+        if (countoff > 1)cleanweights(oo + 1, 1, &weight);
+        if (countoff > 2)cleanweights(oo + 1, 2, &weight);
+        if (countoff > 3)cleanweights(oo + 1, 3, &weight);
+        if (countoff > 4)cleanweights(oo + 1, 4, &weight);
+        if (countoff > 5)cleanweights(oo + 1, 5, &weight);
+        //ipusch(&input, i, j, 0, dataother[oo][i + j].close);
+    }
+
+    //char path[512];
+    sprintf_s(path, "%s-weight.csv", argv[2]);
+    loaddata(&weight, path);
+
+    drawgraph(renderer, &output, 0, &weight);
+    cout << "SCORE: " << countok << " " << countno << endl;
+}
+
+void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
+    cout << "--- " << argv[2] << " - " << argv[1] << " ---" << endl;
+    char path[512];
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
+    parseCSV(path);
+    cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
     for (int oi = 0; oi < argc - 3; oi++)
     {
         sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[3 + oi]);
@@ -882,7 +1037,7 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     loaddata(&weight, path);
 
     compnextday(&input, &output, &weight);
-    cout << (output)[rows-1] << " $" << endl;
+    cout << (output)[rows - 1] << " $" << endl;
     cout << (output)[rows - 1]- datavect[datavect.size()-1].close << " $" << endl;
     cout << -(1-(output)[rows - 1]/datavect[datavect.size() - 1].close)*100 << " %" << endl;
 };
@@ -897,7 +1052,10 @@ int main(int argc, char* argv[])
             //SDL_bool done = SDL_FALSE;
             if((argc>1)&&(!strcmp("yes", argv[1])))
                 optimize(renderer, argc,argv);
-            computenextday(renderer, argc, argv);
+            else if ((argc > 1) && (!strcmp("score", argv[1])))
+                printscore(renderer, argc, argv);
+            else
+                computenextday(renderer, argc, argv);
             
             while (!done) {
                 SDL_Event event;
