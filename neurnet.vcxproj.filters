@@ -32,5 +32,8 @@
     <Library Include="tf2\lib\tensorflow.lib">
       <Filter>lib</Filter>
     </Library>
+    <Library Include="SDL2_image-2.0.5\lib\x64\SDL2_image.lib">
+      <Filter>lib</Filter>
+    </Library>
   </ItemGroup>
 </Project>

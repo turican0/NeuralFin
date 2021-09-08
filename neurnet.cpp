@@ -21,6 +21,7 @@
 //#include "openner/NeuralNetwork.hpp"
 
 #include "SDL.h"
+#include <SDL_image.h>
 
 using namespace std;
 
@@ -292,6 +293,37 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
     //SDL_RenderDrawLine(renderer, 300, 240, 340, 240);
     //SDL_RenderDrawLine(renderer, 340, 240, 320, 200);
     SDL_RenderPresent(renderer);
+
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    Uint32 rmask = 0xff000000;
+    Uint32 gmask = 0x00ff0000;
+    Uint32 bmask = 0x0000ff00;
+    Uint32 amask = 0x000000ff;
+#else
+    Uint32 rmask = 0x000000ff;
+    Uint32 gmask = 0x0000ff00;
+    Uint32 bmask = 0x00ff0000;
+    Uint32 amask = 0xff000000;
+#endif
+
+    //int fenetre = SDL_GetWindowFromId(touche.windowID); // "touche" is a   SDL_KeyboardEvent, "fenetre" is a SDL_window pointer
+
+    //int r_copie = SDL_GetRenderer(fenetre);
+
+    SDL_Surface* s_SnapSource = SDL_CreateRGBSurface(0, rendx, rendy, 32,
+        rmask,
+        gmask,
+        bmask,
+        amask); // s_SnapSource is a SDL_Surface pointer
+    SDL_LockSurface(s_SnapSource);
+    SDL_RenderReadPixels(renderer, NULL, s_SnapSource->format->format,
+        s_SnapSource->pixels, s_SnapSource->pitch);
+
+    SDL_SaveBMP(s_SnapSource, "screenshot.png"); // NomFichier is a char*
+    SDL_UnlockSurface(s_SnapSource);
+    SDL_FreeSurface(s_SnapSource);
+
+    //SDL_SaveBMP(renderer, "screenshot.png");
 
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
@@ -683,6 +715,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             //if (countoff > 1)detectbest(0,1, &input, &output, &weight, &addkoef);
             //if (countoff > 2)detectbest(0,2, &input, &output, &weight, &addkoef);
             //if (countoff > 3)detectbest(0,3, &input, &output, &weight, &addkoef);
+            cout << "0 " << endl;
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight);
             savedata(&weight,path);
@@ -696,11 +729,17 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
             if (countoff > 0)detectbest(0, 0, &input, &output, &weight, &addkoef);
+            cout << "0 ";
             if (countoff > 1)detectbest(0, 1, &input, &output, &weight, &addkoef);
+            cout << "1 ";
             if (countoff > 2)detectbest(0, 2, &input, &output, &weight, &addkoef);
+            cout << "2 ";
             if (countoff > 3)detectbest(0, 3, &input, &output, &weight, &addkoef);
+            cout << "3 ";
             if (countoff > 4)detectbest(0, 4, &input, &output, &weight, &addkoef);
+            cout << "4 ";
             if (countoff > 5)detectbest(0, 5, &input, &output, &weight, &addkoef);
+            cout << "5 "<< endl;
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight);
             savedata(&weight,path);
@@ -714,21 +753,34 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
             if (countoff > 0)detectbest(0, 0, &input, &output, &weight, &addkoef);
+            cout << "0 ";
             if (countoff > 1)detectbest(0, 1, &input, &output, &weight, &addkoef);
+            cout << "1 ";
             if (countoff > 2)detectbest(0, 2, &input, &output, &weight, &addkoef);
+            cout << "2 ";
             if (countoff > 3)detectbest(0, 3, &input, &output, &weight, &addkoef);
+            cout << "3 ";
             if (countoff > 4)detectbest(0, 4, &input, &output, &weight, &addkoef);
+            cout << "4 ";
             if (countoff > 5)detectbest(0, 5, &input, &output, &weight, &addkoef);
+            cout << "5 ";
             for (int oo = 0; oo < countother; oo++)
             {
                 if (countoff > 0)detectbest(oo + 1, 0, &input, &output, &weight, &addkoef);
+                cout << countother <<"x0 ";
                 if (countoff > 1)detectbest(oo + 1, 1, &input, &output, &weight, &addkoef);
+                cout << countother << "x1 ";
                 if (countoff > 2)detectbest(oo + 1, 2, &input, &output, &weight, &addkoef);
+                cout << countother << "x2 ";
                 if (countoff > 3)detectbest(oo + 1, 3, &input, &output, &weight, &addkoef);
+                cout << countother << "x3 ";
                 if (countoff > 4)detectbest(oo + 1, 4, &input, &output, &weight, &addkoef);
+                cout << countother << "x4 ";
                 if (countoff > 5)detectbest(oo + 1, 5, &input, &output, &weight, &addkoef);
+                cout << countother << "x5 ";
                 //ipusch(&input, i, j, 0, dataother[oo][i + j].close);
             }
+            cout << endl;
             //compoutputs(&input,&output,&weight);
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight);
