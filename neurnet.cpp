@@ -202,7 +202,7 @@ int rendy = 480 * 2;
 int countok;
 int countno;
 
-void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<double>* weight) {
+void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<double>* weight,char* argv2) {
     SDL_Event event;
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
@@ -319,7 +319,9 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
     SDL_RenderReadPixels(renderer, NULL, s_SnapSource->format->format,
         s_SnapSource->pixels, s_SnapSource->pitch);
 
-    SDL_SaveBMP(s_SnapSource, "screenshot.png"); // NomFichier is a char*
+    char path[512];
+    sprintf_s(path, "%s-screen.png", argv2);
+    SDL_SaveBMP(s_SnapSource, path); // NomFichier is a char*
     SDL_UnlockSurface(s_SnapSource);
     SDL_FreeSurface(s_SnapSource);
 
@@ -724,7 +726,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             //if (countoff > 3)detectbest(0,3, &input, &output, &weight, &addkoef);
             cout << "0 " << endl;
             cout << steps << " - ";
-            drawgraph(renderer, &output, 0, &weight);
+            drawgraph(renderer, &output, 0, &weight, argv[2]);
             savedata(&weight,path);
             cout << countok << " " << countno << endl;
         }
@@ -748,7 +750,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             if (countoff > 5)detectbest(0, 5, &input, &output, &weight, &addkoef);
             cout << "5 "<< endl;
             cout << steps << " - ";
-            drawgraph(renderer, &output, 0, &weight);
+            drawgraph(renderer, &output, 0, &weight, argv[2]);
             savedata(&weight,path);
             cout << countok << " " << countno << endl;
         }
@@ -790,7 +792,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             cout << endl;
             //compoutputs(&input,&output,&weight);
             cout << steps << " - ";
-            drawgraph(renderer, &output, 0, &weight);
+            drawgraph(renderer, &output, 0, &weight, argv[2]);
             savedata(&weight,path);
             cout << countok << " " << countno << endl;
         }
@@ -946,7 +948,7 @@ void printscore(SDL_Renderer* renderer, int argc, char* argv[]) {
     loaddata(&weight, path);
 
     compoutputs(&input, &output, &weight);
-    drawgraph(renderer, &output, 0, &weight);
+    drawgraph(renderer, &output, 0, &weight, argv[2]);
     cout << "SCORE: " << countok << " " << countno << endl;
 }
 
