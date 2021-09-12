@@ -1,0 +1,24 @@
+﻿  neurnet.cpp
+C:\prenos\NeuralFin\neurnet.cpp(218,16): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(219,16): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(238,20): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(239,20): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(244,27): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(245,27): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(248,28): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(249,28): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(250,28): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(251,28): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(268,59): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(288,114): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(288,65): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(574,56): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(809,56): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(966,58): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(1115,39): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
+  Vytváří se kód.
+  3 of 378 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  Vytváření kódu se dokončilo.
+  neurnet.vcxproj -> C:\prenos\NeuralFin\x64\Release\neurnet.exe

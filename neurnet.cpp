@@ -59,7 +59,7 @@ std::vector<data_t> dataother[100];
 
 int inputsize = 30;
 int outputsize = 1;
-int countoff = 6;// 4;
+int countoff = 11;// 4;
 int rowtrunc = 2500;// 10000;
 int countofder = 3;//3;
 
@@ -336,69 +336,23 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
 
 void compoutputs(vector<double>* input, vector<double>* output, vector<double>* weight) {
     for (int i = 0; i < rows; i++)
-        (*output)[i] = 0;    
-    for (int j = 0; j < cols; j++)
     {
-        for (int i = 0; i < rows; i++)
+        (*output)[i] = 0;    
+        for (int j = 0; j < cols; j++)
         {
             for (int k = 0; k < countoff; k++)
             {
-                (*output)[i] += iget(0, input, i, j, k) * igetw(0, weight, /*i,*/ j, k);
-            }
-            /*}
-            }
-
-                for (int i = 0; i < rows; i++)
-            for (int j = 0; j < cols; j++)*/
-            for (int oo = 0; oo < countother; oo++)
-            {
-                for (int k = 0; k < countoff; k++)
+                //(*output)[i] += iget(0, input, i, j, k) * igetw(0, weight, /*i,*/ j, k);
+                for (int oo = 0; oo < countother+1; oo++)
                 {
-                    (*output)[i] += iget(oo + 1, input, i, j, k) * igetw(oo + 1, weight, /*i,*/ j, k);
+                    (*output)[i] += iget(oo/* + 1*/, input, i, j, k) * igetw(oo/* + 1*/, weight, /*i,*/ j, k);
                 }
             }
         }
     }
 };
 
-void compoutputs2(vector<double>* input, vector<double>* output, vector<double>* weight, vector<bool>* coltemp) {
-    for (int i = 0; i < rows; i++)
-        (*output)[i] = 0;
-    for (int j = 0; j < cols; j++)
-    {
-        if ((*coltemp)[j] == false)
-        {
-            for (int i = 0; i < rows; i++) {
-                for (int k = 0; k < countoff; k++)
-                    (*output)[i] += iget(0, input, i, j, k) * igetw(0, weight, /*i,*/ j, k);
-                for (int oo = 0; oo < countother; oo++)
-                    for (int k = 0; k < countoff; k++)
-                        (*output)[i] += iget(oo + 1, input, i, j, k) * igetw(oo + 1, weight, /*i,*/ j, k);
-            }
-            (*coltemp)[j] = true;
-        }
-    }
-};
-/*
-void compnextday(vector<double>* input, vector<double>* output, vector<double>* weight) {
-    for (int i = 0; i < rows; i++) {
-        (*output)[i] = 0;
-        for (int j = 0; j < cols; j++)
-        {
-            for (int k = 0; k < countoff; k++)
-                (*output)[i] += iget(0, input, i, j, k) * igetw(0, weight,  j, k);
-        }
-    }
-    for (int oo = 0; oo < countother; oo++)
-        for (int i = 0; i < rows; i++) {
-            //(*output)[i] = 0;
-            for (int j = 0; j < cols; j++)
-            {
-                for (int k = 0; k < countoff; k++)
-                    (*output)[i] += iget(oo + 1, input, i, j, k) * igetw(oo + 1, weight,  j, k);
-            }
-        }
-};*/
+double lasterror;
 
 double detecterror(vector<double>* output) {
     /*for (int i = 0; i < rows; i++) {
@@ -446,6 +400,7 @@ void detectbest(int oo, int index,vector<double>* input, vector<double>* output,
                 {
                     ipuschw(oo, weight, j, k, origweight);
                     ipuscha(oo, addkoef, j, k, 0.99 * locrand * igeta(0, addkoef, j, k));
+                    lasterror = geterror;
                     //cout << ":0 " << geterror << endl;
                     //cout << geterror << ":" << geterror1 << ":" << geterror2 <<endl;
                 }
@@ -453,6 +408,7 @@ void detectbest(int oo, int index,vector<double>* input, vector<double>* output,
                 {
                     ipuschw(oo, weight, j, k, origweight + igeta(0, addkoef, j, k));
                     ipuscha(oo, addkoef, j, k, 1.01 * locrand * igeta(0, addkoef, j, k));
+                    lasterror = geterror1;
                     //cout << ":1 " << geterror1 << endl;
                     //cout << geterror << ":" << geterror1 << ":" << geterror2 << endl;
                 }
@@ -460,6 +416,7 @@ void detectbest(int oo, int index,vector<double>* input, vector<double>* output,
                 {
                     ipuschw(oo, weight, j, k, origweight - igeta(0, addkoef, j, k));
                     ipuscha(oo, addkoef, j, k, 1.01 * locrand * igeta(0, addkoef, j, k));
+                    lasterror = geterror2;
                     //cout << ":2 " << geterror2 << endl;
                     //cout << geterror << ":" << geterror1 << ":" << geterror2 << endl;
                 }
@@ -744,7 +701,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
     for (int step = 0; step < 5; step++)
     {
         //steps 1
-        for (int steps = 0; steps < 2000; steps++)
+        for (int steps = 0; steps < 20; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
             if (countoff > 0)detectbest(0,0, &input, &output, &weight, &addkoef);
@@ -755,7 +712,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight, argv[2]);
             savedata(&weight,path);
-            cout << countok << " " << countno << endl;
+            cout << countok << " " << countno <<":"<< lasterror << endl;
         }
         //steps 1
 
@@ -779,7 +736,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight, argv[2]);
             savedata(&weight,path);
-            cout << countok << " " << countno << endl;
+            cout << countok << " " << countno << ":" << lasterror << endl;
         }
         //steps 2
 
@@ -821,7 +778,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight, argv[2]);
             savedata(&weight,path);
-            cout << countok << " " << countno << endl;
+            cout << countok << " " << countno << ":" << lasterror << endl;
         }
         //steps 3
     }
@@ -1155,8 +1112,8 @@ void sortbest() {
     }
     int percols = 4;
     std::string templine;
-    int count = lines.size()/ percols;
-    for(int i=1;i< count;i++)
+    int count = lines.size() / percols;
+    for (int i = 1; i < count; i++)
         for (int j = 0; j < i; j++)
         {
             double comp1 = stod(lines[j * percols + 3]);
@@ -1181,7 +1138,15 @@ void sortbest() {
             }
         }
     for (int i = 0; i < lines.size(); i++)
-        cout << lines[i] << endl;
+    {
+        cout << lines[i];
+        if (i % 4 == 0)cout << " | ";
+        if (i % 4 == 1)cout << " | ";
+        if (i % 4 == 2)cout << " | ";
+        if (i % 4 == 3) {
+            cout << "% | " << lines[i-3] <<endl;
+        }
+    }
 };
 
 int main(int argc, char* argv[])
