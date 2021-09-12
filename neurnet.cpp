@@ -335,21 +335,47 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
 };
 
 void compoutputs(vector<double>* input, vector<double>* output, vector<double>* weight) {
-    for (int i = 0; i < rows; i++) {
-        (*output)[i] = 0;
-        for (int j = 0; j < cols; j++)
+    for (int i = 0; i < rows; i++)
+        (*output)[i] = 0;    
+    for (int j = 0; j < cols; j++)
+    {
+        for (int i = 0; i < rows; i++)
         {
             for (int k = 0; k < countoff; k++)
-                (*output)[i] += iget(0,input, i, j, k) * igetw(0,weight, /*i,*/ j, k);
+            {
+                (*output)[i] += iget(0, input, i, j, k) * igetw(0, weight, /*i,*/ j, k);
+            }
+            /*}
+            }
+
+                for (int i = 0; i < rows; i++)
+            for (int j = 0; j < cols; j++)*/
+            for (int oo = 0; oo < countother; oo++)
+            {
+                for (int k = 0; k < countoff; k++)
+                {
+                    (*output)[i] += iget(oo + 1, input, i, j, k) * igetw(oo + 1, weight, /*i,*/ j, k);
+                }
+            }
         }
     }
-    for (int oo = 0; oo < countother; oo++)
-    for (int i = 0; i < rows; i++) {
-        //(*output)[i] = 0;
-        for (int j = 0; j < cols; j++)
+};
+
+void compoutputs2(vector<double>* input, vector<double>* output, vector<double>* weight, vector<bool>* coltemp) {
+    for (int i = 0; i < rows; i++)
+        (*output)[i] = 0;
+    for (int j = 0; j < cols; j++)
+    {
+        if ((*coltemp)[j] == false)
         {
-            for (int k = 0; k < countoff; k++)
-                (*output)[i] += iget(oo+1,input, i, j, k) * igetw(oo+1,weight, /*i,*/ j, k);
+            for (int i = 0; i < rows; i++) {
+                for (int k = 0; k < countoff; k++)
+                    (*output)[i] += iget(0, input, i, j, k) * igetw(0, weight, /*i,*/ j, k);
+                for (int oo = 0; oo < countother; oo++)
+                    for (int k = 0; k < countoff; k++)
+                        (*output)[i] += iget(oo + 1, input, i, j, k) * igetw(oo + 1, weight, /*i,*/ j, k);
+            }
+            (*coltemp)[j] = true;
         }
     }
 };
@@ -408,7 +434,7 @@ void detectbest(int oo, int index,vector<double>* input, vector<double>* output,
                 compoutputs(input, output, weight);
                 double geterror = detecterror(output);
 
-                ipuschw(oo, weight, j, k, origweight + igeta(0, addkoef, j, k));
+                ipuschw(oo, weight,j, k, origweight + igeta(0, addkoef, j, k));
                 compoutputs(input, output, weight);
                 double geterror1 = detecterror(output);
 
@@ -596,10 +622,11 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
     //vector<double> inputoth(countother *cols * rows * countoff);
 
     vector<double> output(rows);
+
     for (int i = 0; i < weight.size(); i++)
     {
         weight[i] = 1;
-        addkoef[i] = 0.1;
+        addkoef[i] = 0.5;
     }
 
     //init
@@ -717,7 +744,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
     for (int step = 0; step < 5; step++)
     {
         //steps 1
-        for (int steps = 0; steps < 20; steps++)
+        for (int steps = 0; steps < 2000; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
             if (countoff > 0)detectbest(0,0, &input, &output, &weight, &addkoef);
@@ -830,10 +857,11 @@ void printscore(SDL_Renderer* renderer, int argc, char* argv[]) {
     //vector<double> inputoth(countother *cols * rows * countoff);
 
     vector<double> output(rows);
+
     for (int i = 0; i < weight.size(); i++)
     {
         weight[i] = 1;
-        addkoef[i] = 0.1;
+        addkoef[i] = 0.5;
     }
 
     //init
@@ -986,10 +1014,11 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     //vector<double> inputoth(countother *cols * rows * countoff);
 
     vector<double> output(rows);
+
     for (int i = 0; i < weight.size(); i++)
     {
         weight[i] = 1;
-        addkoef[i] = 0.1;
+        addkoef[i] = 0.5;
     }
 
     //init
@@ -1202,4 +1231,6 @@ int main(int argc, char* argv[])
     SDL_Quit();
     return 0;
 }
+
+
 
