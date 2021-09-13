@@ -1149,6 +1149,105 @@ void sortbest() {
     }
 };
 
+void makebatches(int argc, char* argv[]) {
+    std::ifstream  data("c:\\prenos\\NeuralFin\\eodapikey.txt");
+    std::string apikey;
+    std::getline(data, apikey);
+    data.close();
+
+    ofstream myfile;
+    myfile.open("dwn.bat");
+    for (int i = 2; i < argc; i++)
+    {        
+        myfile << "del \"c:\\prenos\\NeuralFin\\"<< argv[i] <<".US@api_token = "<< apikey <<"\"" << endl;
+        myfile << "c:\\prenos\\NeuralFin\\wget\\bin\\wget -P c:\\prenos\\NeuralFin \"https://eodhistoricaldata.com/api/eod/"<< argv[i] <<".US?api_token=" << apikey << "\""<< endl;
+        myfile << "copy \"c:\\prenos\\NeuralFin\\" << argv[i] <<".US@api_token=" << apikey << "\" \"c:\\prenos\\NeuralFin\\" << argv[i] <<".csv\"" << endl << endl;
+    }
+    myfile.close();
+
+    myfile.open("findbest.bat");
+    myfile << "REM xx" << endl;
+    myfile << "cd c:\\prenos\\NeuralFin" << endl;
+    myfile << "del \"c:\\prenos\\NeuralFin\\addlog.csv\"" << endl;
+    for (int i = 2; i < argc; i++)
+    {
+        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe no " << argv[i];
+        for (int j = 2; j < argc; j++)
+            if (strcmp(argv[i], argv[j]))
+                myfile << " " << argv[j];
+        myfile << endl;
+    }
+    myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe sort" << endl;
+    myfile << "PAUSE" << endl;
+    myfile.close();
+
+    myfile.open("run-all.bat");
+    myfile << "REM xx" << endl;
+    myfile << "cd c:\\prenos\\NeuralFin" << endl;
+    for (int i = 2; i < argc; i++)
+    {
+        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe yes " << argv[i];
+        for (int j = 2; j < argc; j++)
+            if (strcmp(argv[i], argv[j]))
+                myfile << " " << argv[j];
+        myfile << endl;
+    }
+    myfile << "PAUSE" << endl;
+    myfile.close();
+
+    for (int i = 2; i < argc; i++)
+    {
+        char path[500];
+        sprintf_s(path, "run-all-part%d.bat", 1+((i - 2) / ((argc - 2) / 4)));
+        if ((i - 2) % ((argc - 2) / 4) == 0)
+        {
+            myfile.open(path);
+            myfile << "REM xx" << endl;
+            myfile << "cd c:\\prenos\\NeuralFin" << endl;
+        }
+        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe yes " << argv[i];
+        for (int j = 2; j < argc; j++)
+            if (strcmp(argv[i], argv[j]))
+                myfile << " " << argv[j];
+        myfile << endl;
+        if ((i - 2) % ((argc - 2) / 4) == ((argc - 2) / 4)-1)
+        {
+            myfile << "PAUSE" << endl;
+            myfile.close();
+        }
+    }
+
+    myfile.open("run-score.bat");
+    myfile << "REM xx" << endl;
+    myfile << "cd c:\\prenos\\NeuralFin" << endl;
+    for (int i = 2; i < argc; i++)
+    {
+        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe score " << argv[i];
+        for (int j = 2; j < argc; j++)
+            if (strcmp(argv[i], argv[j]))
+                myfile << " " << argv[j];
+        myfile << endl;
+    }
+    myfile << "PAUSE" << endl;
+    myfile.close();
+
+    for (int i = 2; i < argc; i++)
+    {
+        char path[500];
+        sprintf_s(path,"run-only%d.bat",i-1);
+        myfile.open(path);
+        myfile << "REM xx" << endl;
+        myfile << "cd c:\\prenos\\NeuralFin" << endl;
+        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe yes " << argv[i];
+        for (int j = 2; j < argc; j++)
+            if (strcmp(argv[i], argv[j]))
+                myfile << " " << argv[j];
+        myfile << endl;
+        myfile << "PAUSE" << endl;
+        myfile.close();
+    }
+};
+
 int main(int argc, char* argv[])
 {
     if (SDL_Init(SDL_INIT_VIDEO) == 0) {
@@ -1163,6 +1262,8 @@ int main(int argc, char* argv[])
                 printscore(renderer, argc, argv);
             else if ((argc > 1) && (!strcmp("sort", argv[1])))
                 sortbest();
+            else if ((argc > 1) && (!strcmp("makebatches", argv[1])))
+                makebatches(argc, argv);
             else
                 computenextday(renderer, argc, argv);
             

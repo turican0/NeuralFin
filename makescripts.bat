@@ -1,0 +1,1 @@
+c:\prenos\NeuralFin\x64\Release\neurnet.exe makebatches FB GOOG MSFT AMZN SE MELI FTNT MA DIA REGN AMD BABA

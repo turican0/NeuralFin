@@ -30,3 +30,7 @@ x64/Debug/neurnet.pdb
 x64/Debug/neurnet.tlog/link.read.1.tlog
 x64/Debug/neurnet.tlog/CL.command.1.tlog
 *.tlog
+*@api_token=*.*
+dwn.bat
+eodapikey.txt
+
