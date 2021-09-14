@@ -201,6 +201,7 @@ int rendy = 480 * 2;
 
 int countok;
 int countno;
+double profitx;
 
 void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<double>* weight,char* argv2) {
     SDL_Event event;
@@ -212,6 +213,8 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
 
     countok=0;
     countno=0;
+
+    profitx = 100;
 
     for (int i = 0; i < datavect.size(); i++)
     {
@@ -241,19 +244,21 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
                 SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
             else
             {
-                int prex1 = ((double)(posi + inputsize - 1) / datavect.size()) * rendx;
-                int prey1 = rendy - (datavect[posi + inputsize - 1].close / (koef / 3) * rendy);
+                double prex1 = ((double)(posi + inputsize - 1) / datavect.size()) * rendx;
+                double prey1 = rendy - (datavect[posi + inputsize - 1].close / (koef / 3) * rendy);
                 //int prex1 = ((double)posi / datavect.size()) * rendx;
                 //int prey1 = rendy - (datavect[posi].close / (koef / 3) * rendy);                
-                int truey1 = datavect[posi + inputsize - 1].close;
-                int truey2 = datavect[posi + inputsize].close;
-                int predy1 = datavect[posi + inputsize - 1].close;
-                int predy2 = y;
+                double truey1 = datavect[posi + inputsize - 1].close;
+                double truey2 = datavect[posi + inputsize].close;
+                double predy1 = datavect[posi + inputsize - 1].close;
+                double predy2 = y;
                 int truepos = 0;
                 double diff = abs(truey2 - y);
                 if (truey1 < truey2)truepos = 1;
                 int predpos = 0;
-                if (predy1 < predy2)predpos = 1;
+                if (predy1 < predy2) {
+                    predpos = 1; profitx *= truey2 / truey1;
+                }
 
                 if (truepos == predpos)
                 {
@@ -712,7 +717,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight, argv[2]);
             savedata(&weight,path);
-            cout << countok << " " << countno <<":"<< lasterror << endl;
+            cout << countok << " " << countno <<"("<<profitx<<"|"<<rows<<"):"<< lasterror << endl;
         }
         //steps 1
 
@@ -736,7 +741,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight, argv[2]);
             savedata(&weight,path);
-            cout << countok << " " << countno << ":" << lasterror << endl;
+            cout << countok << " " << countno << "(" << profitx << "|" << rows << "):" << lasterror << endl;
         }
         //steps 2
 
@@ -778,7 +783,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             cout << steps << " - ";
             drawgraph(renderer, &output, 0, &weight, argv[2]);
             savedata(&weight,path);
-            cout << countok << " " << countno << ":" << lasterror << endl;
+            cout << countok << " " << countno << "(" << profitx << "|" << rows << "):" << lasterror << endl;
         }
         //steps 3
     }
@@ -934,13 +939,13 @@ void printscore(SDL_Renderer* renderer, int argc, char* argv[]) {
 
     compoutputs(&input, &output, &weight);
     drawgraph(renderer, &output, 0, &weight, argv[2]);
-    cout << "SCORE: " << countok << " " << countno << endl;
+    cout << "SCORE: " << countok << " " << countno << "(" << profitx << "|" << rows << "):" << lasterror << endl;
 }
 
 void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     cout << "--- " << argv[2] << " - " << argv[1] << " ---" << endl;
     char buffer[512];
-    sprintf_s(buffer, "--- %s ---", argv[2]);
+    sprintf_s(buffer, "%s", argv[2]);
     savetobestlog(buffer);
     char path[512];
     sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
@@ -1089,11 +1094,16 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     sprintf_s(path, "%s-weight.csv", argv[2]);
     loaddata(&weight, path);
     compoutputs(&input, &output, &weight);
+
+    drawgraph(renderer, &output, 0, &weight, argv[2]);
     //compnextday(&input, &output, &weight);
     cout << datavect[datavect.size() - 1].close << " -> " << (output)[rows - 1] << " $" << endl;
     cout << (output)[rows - 1]- datavect[datavect.size()-1].close << " $" << endl;
     cout << -(1-(output)[rows - 1]/datavect[datavect.size() - 1].close)*100 << " %" << endl;
+    cout << "PROFIT: " << profitx << "%" << endl;
 
+    sprintf_s(buffer, "PROFIT: %f", profitx);
+    savetobestlog(buffer);
     
     sprintf_s(buffer, "DIFF: %f$ -> %f$ (%f$)", datavect[datavect.size() - 1].close, (output)[rows - 1], (output)[rows - 1] - datavect[datavect.size() - 1].close);
     savetobestlog(buffer);
@@ -1110,14 +1120,14 @@ void sortbest() {
     {
         lines.push_back(line);
     }
-    int percols = 4;
+    int percols = 5;
     std::string templine;
     int count = lines.size() / percols;
     for (int i = 1; i < count; i++)
         for (int j = 0; j < i; j++)
         {
-            double comp1 = stod(lines[j * percols + 3]);
-            double comp2 = stod(lines[i * percols + 3]);
+            double comp1 = stod(lines[j * percols + 4]);
+            double comp2 = stod(lines[i * percols + 4]);
             if (comp1 < comp2)
             {
                 templine = lines[j * percols + 0];
@@ -1133,18 +1143,23 @@ void sortbest() {
                 lines[i * percols + 2] = templine;
 
                 templine = lines[j * percols + 3];
-                lines[j * percols + 03] = lines[i * percols + 3];
+                lines[j * percols + 3] = lines[i * percols + 3];
                 lines[i * percols + 3] = templine;
+
+                templine = lines[j * percols + 4];
+                lines[j * percols + 4] = lines[i * percols + 4];
+                lines[i * percols + 4] = templine;
             }
         }
     for (int i = 0; i < lines.size(); i++)
     {
         cout << lines[i];
-        if (i % 4 == 0)cout << " | ";
-        if (i % 4 == 1)cout << " | ";
-        if (i % 4 == 2)cout << " | ";
-        if (i % 4 == 3) {
-            cout << "% | " << lines[i-3] <<endl;
+        if (i % percols == 0)cout << " | ";
+        if (i % percols == 1)cout << " | ";
+        if (i % percols == 2)cout << " | ";
+        if (i % percols == 3)cout << " | ";
+        if (i % percols == 4) {
+            cout << "% | " << lines[i-4] <<endl;
         }
     }
 };
