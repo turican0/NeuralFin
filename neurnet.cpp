@@ -1174,7 +1174,7 @@ void makebatches(int argc, char* argv[]) {
     myfile.open("dwn.bat");
     for (int i = 2; i < argc; i++)
     {        
-        myfile << "del \"c:\\prenos\\NeuralFin\\"<< argv[i] <<".US@api_token = "<< apikey <<"\"" << endl;
+        myfile << "del \"c:\\prenos\\NeuralFin\\"<< argv[i] <<".US@api_token="<< apikey <<"\"" << endl;
         myfile << "c:\\prenos\\NeuralFin\\wget\\bin\\wget -P c:\\prenos\\NeuralFin \"https://eodhistoricaldata.com/api/eod/"<< argv[i] <<".US?api_token=" << apikey << "\""<< endl;
         myfile << "copy \"c:\\prenos\\NeuralFin\\" << argv[i] <<".US@api_token=" << apikey << "\" \"c:\\prenos\\NeuralFin\\" << argv[i] <<".csv\"" << endl << endl;
     }
