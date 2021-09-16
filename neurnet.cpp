@@ -951,6 +951,41 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
+
+    //test day
+    std::time_t t = std::time(0);   // get time now
+    errno_t err;
+    __time64_t long_time;
+    struct tm newtime;
+    //std::tm* now = std::localtime_s(&t);
+    _time64(&long_time);
+    err = _localtime64_s(&newtime, &long_time);
+    --newtime.tm_mday; // Move back one day
+    mktime(&newtime); // Normalize
+    if (newtime.tm_year + 1900 != datavect[datavect.size() - 1].ear) {
+        cout << endl << "!!! incorect ear !!!" << endl;
+        //cin.ignore(1);
+        std::cin.get();
+        exit(0);
+    }
+    if (newtime.tm_mon + 1 != datavect[datavect.size() - 1].moon) {
+        cout << endl << "!!! incorect moon !!!" << endl;
+        //cin.ignore(1);
+        std::cin.get();
+        exit(0);
+    }
+    if (newtime.tm_mday != datavect[datavect.size() - 1].day) {
+        cout << endl << "!!! incorect day !!!" << endl;
+        //cin.ignore(1);
+        std::cin.get();
+        exit(0);
+    }
+    /*std::cout << (now->tm_year + 1900) << '-'
+        << (now->tm_mon + 1) << '-'
+        << now->tm_mday
+        << "\n";*/
+    //test date
+
     sprintf_s(buffer, "date: %d-%d-%d", (int)datavect[datavect.size() - 1].ear, (int)datavect[datavect.size() - 1].moon, (int)datavect[datavect.size() - 1].day);
     savetobestlog(buffer);
     for (int oi = 0; oi < argc - 3; oi++)
