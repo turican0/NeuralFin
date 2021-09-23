@@ -57,10 +57,10 @@ std::istream& operator>>(std::istream& ist, data_t& data)
 std::vector<data_t> datavect;
 std::vector<data_t> dataother[100];
 
-int inputsize = 30;
+int inputsize = 30;//; 30;
 int outputsize = 1;
 int countoff = 11;// 4;
-int rowtrunc = 2500;// 10000;
+int rowtrunc = 5000;// 2500;// 10000;
 int countofder = 3;//3;
 
 int countother=0;
@@ -203,7 +203,7 @@ int countok;
 int countno;
 double profitx;
 
-void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<double>* weight,char* argv2) {
+void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<double>* weight,char* argv2,int plusday) {
     SDL_Event event;
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
@@ -229,7 +229,7 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
     for (int k = 0; k < inputsize; k++)
         input.push_back(0);
     //for (int posi = 0; posi < datavect.size() - outputsize - inputsize; posi++)
-    for (int posi = 0; posi < datavect.size() - inputsize; posi++)
+    for (int posi = 0; posi < datavect.size() - inputsize- plusday; posi++)
     {
         for (int k = 0; k < inputsize; k++)
             input[k] = datavect[k + posi].close / koef;
@@ -238,7 +238,7 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
 
         for (int i = 0; i < outputsize; i++) {
             double y = (*output)[i + posi];
-            int x1 = ((double)(i + posi + inputsize) / datavect.size()) * rendx;
+            int x1 = ((double)(i + posi + inputsize+ plusday) / datavect.size()) * rendx;
             int y1 = rendy - (y / (koef / 3) * rendy);
             if (i > 0)
                 SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
@@ -249,7 +249,7 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
                 //int prex1 = ((double)posi / datavect.size()) * rendx;
                 //int prey1 = rendy - (datavect[posi].close / (koef / 3) * rendy);                
                 double truey1 = datavect[posi + inputsize - 1].close;
-                double truey2 = datavect[posi + inputsize].close;
+                double truey2 = datavect[posi + inputsize+ plusday].close;
                 double predy1 = datavect[posi + inputsize - 1].close;
                 double predy2 = y;
                 int truepos = 0;
@@ -325,7 +325,7 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
         s_SnapSource->pixels, s_SnapSource->pitch);
 
     char path[512];
-    sprintf_s(path, "%s-screen.png", argv2);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%d\\%s-screen.png", plusday,argv2);
     SDL_SaveBMP(s_SnapSource, path); // NomFichier is a char*
     SDL_UnlockSurface(s_SnapSource);
     SDL_FreeSurface(s_SnapSource);
@@ -359,7 +359,7 @@ void compoutputs(vector<double>* input, vector<double>* output, vector<double>* 
 
 double lasterror;
 
-double detecterror(vector<double>* output) {
+double detecterror(vector<double>* output,int plusday) {
     /*for (int i = 0; i < rows; i++) {
         (*output)[i] = 0;
         for (int j = 0; j < cols; j++)
@@ -370,7 +370,7 @@ double detecterror(vector<double>* output) {
     }*/
     double reserror = 0;
     for (int k = 0; k < (*output).size(); k++)
-        reserror += abs((*output)[k] - datavect[k + inputsize].close);
+        reserror += abs((*output)[k] - datavect[k + inputsize+ plusday].close);
     return reserror;
 };
 
@@ -380,7 +380,7 @@ double fRand(double fMin, double fMax)
     return fMin + f * (fMax - fMin);
 }
 
-void detectbest(int oo, int index,vector<double>* input, vector<double>* output, vector<double>* weight, vector<double>* addkoef) {
+void detectbest(int oo, int index,vector<double>* input, vector<double>* output, vector<double>* weight, vector<double>* addkoef,int plusday) {
     //for (int i = 0; i < rows; i++)
     {
         for (int j = 0; j < cols; j++)
@@ -391,15 +391,15 @@ void detectbest(int oo, int index,vector<double>* input, vector<double>* output,
                 double locrand = fRand(0, 2);
                 double origweight = igetw(oo, weight, j, k);//(*weight)[k];
                 compoutputs(input, output, weight);
-                double geterror = detecterror(output);
+                double geterror = detecterror(output, plusday);
 
                 ipuschw(oo, weight,j, k, origweight + igeta(0, addkoef, j, k));
                 compoutputs(input, output, weight);
-                double geterror1 = detecterror(output);
+                double geterror1 = detecterror(output, plusday);
 
                 ipuschw(oo, weight, j, k, origweight - igeta(0, addkoef, j, k));
                 compoutputs(input, output, weight);
-                double geterror2 = detecterror(output);
+                double geterror2 = detecterror(output, plusday);
 
                 if ((geterror < geterror1) && (geterror < geterror2))
                 {
@@ -533,9 +533,9 @@ void savedata(vector<double>* weight,char* filename) {
     myfile.close();
 };
 
-void savetobestlog(char* buffer) {
+void savetobestlog(char* buffer, char* filename) {
     ofstream myfile;
-    myfile.open("addlog.csv", std::ios_base::app);
+    myfile.open(filename, std::ios_base::app);
     myfile << buffer << endl;
     myfile.close();
 };
@@ -556,14 +556,15 @@ void loaddata(vector<double>* weight, char* filename) {
 int countofothfiles = 3;
 
 void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
-    cout << "--- " << argv[2] << " - " << argv[1] << " ---" << endl;
+    cout << "--- " << argv[3] << " - " << argv[1] << " ---" << endl;
+    int plusday = stoi(argv[2]);
     char path[512];
-    sprintf_s(path,"c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
+    sprintf_s(path,"c:\\prenos\\NeuralFin\\data\\%s.csv", argv[3]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
-    for (int oi = 0; oi < argc - 3; oi++)
+    for (int oi = 0; oi < argc - 4; oi++)
     {
-        sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[3 + oi]);
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[4 + oi]);
         parseCSVother(path);
     }
 
@@ -576,7 +577,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
 
     //cols = (inputsize + (inputsize - 1) + (inputsize - 2));
     //int cols2 = (inputsize + (inputsize - 1) + (inputsize - 2)) * countoff;
-    rows = datavect.size() - inputsize /*- outputsize*/;
+    rows = datavect.size() - inputsize /*- outputsize*/- plusday;
     vector<double> input(cols * rows * countoff*(1+ countother));
     vector<double> weight(cols/* * rows*/ * countoff*(1+countother));
     vector<double> addkoef(cols/* * rows*/ * countoff*(1 + countother));
@@ -699,7 +700,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
     }
 
     //char path[512];
-    sprintf_s(path, "%s-weight.csv", argv[2]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%d\\%s-weight.csv", plusday,argv[3]);
     loaddata(&weight, path);
 
     cout << "steps 1" << endl;
@@ -709,13 +710,13 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
         for (int steps = 0; steps < 20; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
-            if (countoff > 0)detectbest(0,0, &input, &output, &weight, &addkoef);
+            if (countoff > 0)detectbest(0,0, &input, &output, &weight, &addkoef, plusday);
             //if (countoff > 1)detectbest(0,1, &input, &output, &weight, &addkoef);
             //if (countoff > 2)detectbest(0,2, &input, &output, &weight, &addkoef);
             //if (countoff > 3)detectbest(0,3, &input, &output, &weight, &addkoef);
             cout << "0 " << endl;
             cout << steps << " - ";
-            drawgraph(renderer, &output, 0, &weight, argv[2]);
+            drawgraph(renderer, &output, 0, &weight, argv[3], plusday);
             savedata(&weight,path);
             cout << countok << " " << countno <<"("<<profitx<<"|"<<rows<<"):"<< lasterror << endl;
         }
@@ -726,20 +727,20 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
         for (int steps = 0; steps < 10; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
-            if (countoff > 0)detectbest(0, 0, &input, &output, &weight, &addkoef);
+            if (countoff > 0)detectbest(0, 0, &input, &output, &weight, &addkoef, plusday);
             cout << "0 ";
-            if (countoff > 1)detectbest(0, 1, &input, &output, &weight, &addkoef);
+            if (countoff > 1)detectbest(0, 1, &input, &output, &weight, &addkoef, plusday);
             cout << "1 ";
-            if (countoff > 2)detectbest(0, 2, &input, &output, &weight, &addkoef);
+            if (countoff > 2)detectbest(0, 2, &input, &output, &weight, &addkoef, plusday);
             cout << "2 ";
-            if (countoff > 3)detectbest(0, 3, &input, &output, &weight, &addkoef);
+            if (countoff > 3)detectbest(0, 3, &input, &output, &weight, &addkoef, plusday);
             cout << "3 ";
-            if (countoff > 4)detectbest(0, 4, &input, &output, &weight, &addkoef);
+            if (countoff > 4)detectbest(0, 4, &input, &output, &weight, &addkoef, plusday);
             cout << "4 ";
-            if (countoff > 5)detectbest(0, 5, &input, &output, &weight, &addkoef);
+            if (countoff > 5)detectbest(0, 5, &input, &output, &weight, &addkoef, plusday);
             cout << "5 "<< endl;
             cout << steps << " - ";
-            drawgraph(renderer, &output, 0, &weight, argv[2]);
+            drawgraph(renderer, &output, 0, &weight, argv[3], plusday);
             savedata(&weight,path);
             cout << countok << " " << countno << "(" << profitx << "|" << rows << "):" << lasterror << endl;
         }
@@ -750,38 +751,38 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
         for (int steps = 0; steps < 5; steps++)
         {
             //for (int i = 0; i < cols * rows * countoff; i++)
-            if (countoff > 0)detectbest(0, 0, &input, &output, &weight, &addkoef);
+            if (countoff > 0)detectbest(0, 0, &input, &output, &weight, &addkoef, plusday);
             cout << "0 ";
-            if (countoff > 1)detectbest(0, 1, &input, &output, &weight, &addkoef);
+            if (countoff > 1)detectbest(0, 1, &input, &output, &weight, &addkoef, plusday);
             cout << "1 ";
-            if (countoff > 2)detectbest(0, 2, &input, &output, &weight, &addkoef);
+            if (countoff > 2)detectbest(0, 2, &input, &output, &weight, &addkoef, plusday);
             cout << "2 ";
-            if (countoff > 3)detectbest(0, 3, &input, &output, &weight, &addkoef);
+            if (countoff > 3)detectbest(0, 3, &input, &output, &weight, &addkoef, plusday);
             cout << "3 ";
-            if (countoff > 4)detectbest(0, 4, &input, &output, &weight, &addkoef);
+            if (countoff > 4)detectbest(0, 4, &input, &output, &weight, &addkoef, plusday);
             cout << "4 ";
-            if (countoff > 5)detectbest(0, 5, &input, &output, &weight, &addkoef);
+            if (countoff > 5)detectbest(0, 5, &input, &output, &weight, &addkoef, plusday);
             cout << "5 ";
             for (int oo = 0; oo < countother; oo++)
             {
-                if (countoff > 0)detectbest(oo + 1, 0, &input, &output, &weight, &addkoef);
+                if (countoff > 0)detectbest(oo + 1, 0, &input, &output, &weight, &addkoef, plusday);
                 cout << oo <<"x0 ";
-                if (countoff > 1)detectbest(oo + 1, 1, &input, &output, &weight, &addkoef);
+                if (countoff > 1)detectbest(oo + 1, 1, &input, &output, &weight, &addkoef, plusday);
                 cout << oo << "x1 ";
-                if (countoff > 2)detectbest(oo + 1, 2, &input, &output, &weight, &addkoef);
+                if (countoff > 2)detectbest(oo + 1, 2, &input, &output, &weight, &addkoef, plusday);
                 cout << oo << "x2 ";
-                if (countoff > 3)detectbest(oo + 1, 3, &input, &output, &weight, &addkoef);
+                if (countoff > 3)detectbest(oo + 1, 3, &input, &output, &weight, &addkoef, plusday);
                 cout << oo << "x3 ";
-                if (countoff > 4)detectbest(oo + 1, 4, &input, &output, &weight, &addkoef);
+                if (countoff > 4)detectbest(oo + 1, 4, &input, &output, &weight, &addkoef, plusday);
                 cout << oo << "x4 ";
-                if (countoff > 5)detectbest(oo + 1, 5, &input, &output, &weight, &addkoef);
+                if (countoff > 5)detectbest(oo + 1, 5, &input, &output, &weight, &addkoef, plusday);
                 cout << oo << "x5 ";
                 //ipusch(&input, i, j, 0, dataother[oo][i + j].close);
             }
             cout << endl;
             //compoutputs(&input,&output,&weight);
             cout << steps << " - ";
-            drawgraph(renderer, &output, 0, &weight, argv[2]);
+            drawgraph(renderer, &output, 0, &weight, argv[3], plusday);
             savedata(&weight,path);
             cout << countok << " " << countno << "(" << profitx << "|" << rows << "):" << lasterror << endl;
         }
@@ -791,14 +792,15 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
 }
 
 void printscore(SDL_Renderer* renderer, int argc, char* argv[]) {
-    cout << "--- " << argv[2] << " - " << argv[1] << " ---" << endl;
+    cout << "--- " << argv[3] << " - " << argv[1] << " ---" << endl;
+    int plusday = stoi(argv[2]);
     char path[512];
-    sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[3]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
-    for (int oi = 0; oi < argc - 3; oi++)
+    for (int oi = 0; oi < argc - 4; oi++)
     {
-        sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[3 + oi]);
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[4 + oi]);
         parseCSVother(path);
     }
 
@@ -811,7 +813,7 @@ void printscore(SDL_Renderer* renderer, int argc, char* argv[]) {
 
     //cols = (inputsize + (inputsize - 1) + (inputsize - 2));
     //int cols2 = (inputsize + (inputsize - 1) + (inputsize - 2)) * countoff;
-    rows = datavect.size() - inputsize /*- outputsize*/;
+    rows = datavect.size() - inputsize /*- outputsize*/ - plusday;
     vector<double> input(cols * rows * countoff * (1 + countother));
     vector<double> weight(cols/* * rows*/ * countoff * (1 + countother));
     vector<double> addkoef(cols/* * rows*/ * countoff * (1 + countother));
@@ -934,21 +936,24 @@ void printscore(SDL_Renderer* renderer, int argc, char* argv[]) {
     }
 
     //char path[512];
-    sprintf_s(path, "%s-weight.csv", argv[2]);
+    sprintf_s(path, "%s-weight.csv", argv[3]);
     loaddata(&weight, path);
 
     compoutputs(&input, &output, &weight);
-    drawgraph(renderer, &output, 0, &weight, argv[2]);
+    drawgraph(renderer, &output, 0, &weight, argv[3], plusday);
     cout << "SCORE: " << countok << " " << countno << "(" << profitx << "|" << rows << "):" << lasterror << endl;
 }
 
 void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
-    cout << "--- " << argv[2] << " - " << argv[1] << " ---" << endl;
+    cout << "--- " << argv[3] << " - " << argv[1] << " ---" << endl;
+    int plusday = stoi(argv[2]);
     char buffer[512];
-    sprintf_s(buffer, "%s", argv[2]);
-    savetobestlog(buffer);
+    sprintf_s(buffer, "%s", argv[3]);
+    char bestlogpath[512];
+    sprintf_s(bestlogpath, "c:\\prenos\\NeuralFin\\data\\%d\\addlog.csv", plusday);
     char path[512];
-    sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[2]);
+    savetobestlog(buffer, bestlogpath);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[3]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
 
@@ -986,11 +991,11 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
         << "\n";*/
     //test date
 
-    sprintf_s(buffer, "date: %d-%d-%d", (int)datavect[datavect.size() - 1].ear, (int)datavect[datavect.size() - 1].moon, (int)datavect[datavect.size() - 1].day);
-    savetobestlog(buffer);
-    for (int oi = 0; oi < argc - 3; oi++)
+    sprintf_s(buffer, "date:%d-%d-%d", (int)datavect[datavect.size() - 1].ear, (int)datavect[datavect.size() - 1].moon, (int)datavect[datavect.size() - 1].day);
+    savetobestlog(buffer, bestlogpath);
+    for (int oi = 0; oi < argc - 4; oi++)
     {
-        sprintf_s(path, "c:\\prenos\\NeuralFin\\%s.csv", argv[3 + oi]);
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[4 + oi]);
         parseCSVother(path);
     }
 
@@ -1003,7 +1008,7 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
 
     //cols = (inputsize + (inputsize - 1) + (inputsize - 2));
     //int cols2 = (inputsize + (inputsize - 1) + (inputsize - 2)) * countoff;
-    rows = datavect.size() - inputsize+1 /*- outputsize*/;
+    rows = datavect.size() - inputsize+1 /*- outputsize*/ - plusday;
     vector<double> input(cols * rows * countoff * (1 + countother));
     vector<double> weight(cols/* * rows*/ * countoff * (1 + countother));
     vector<double> addkoef(cols/* * rows*/ * countoff * (1 + countother));
@@ -1126,28 +1131,31 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     }
 
     //char path[512];
-    sprintf_s(path, "%s-weight.csv", argv[2]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%d\\%s-weight.csv", plusday, argv[3]);
     loaddata(&weight, path);
     compoutputs(&input, &output, &weight);
 
-    drawgraph(renderer, &output, 0, &weight, argv[2]);
+    drawgraph(renderer, &output, 0, &weight, argv[3], plusday);
     //compnextday(&input, &output, &weight);
     cout << datavect[datavect.size() - 1].close << " -> " << (output)[rows - 1] << " $" << endl;
     cout << (output)[rows - 1]- datavect[datavect.size()-1].close << " $" << endl;
     cout << -(1-(output)[rows - 1]/datavect[datavect.size() - 1].close)*100 << " %" << endl;
     cout << "PROFIT: " << profitx << "%" << endl;
 
-    sprintf_s(buffer, "PROFIT: %f", profitx);
-    savetobestlog(buffer);
+    sprintf_s(buffer, "PR:%0.2f", profitx);
+    savetobestlog(buffer, bestlogpath);
     
-    sprintf_s(buffer, "DIFF: %f$ -> %f$ (%f$)", datavect[datavect.size() - 1].close, (output)[rows - 1], (output)[rows - 1] - datavect[datavect.size() - 1].close);
-    savetobestlog(buffer);
-    sprintf_s(buffer, "%f", -(1 - (output)[rows - 1] / datavect[datavect.size() - 1].close) * 100);
-    savetobestlog(buffer);
+    sprintf_s(buffer, "DF:%0.2f$->%0.2f$(%0.2f$)", datavect[datavect.size() - 1].close, (output)[rows - 1], (output)[rows - 1] - datavect[datavect.size() - 1].close);
+    savetobestlog(buffer, bestlogpath);
+    sprintf_s(buffer, "%0.2f", -(1 - (output)[rows - 1] / datavect[datavect.size() - 1].close) * 100);
+    savetobestlog(buffer, bestlogpath);
 };
 
-void sortbest() {
-    std::ifstream  data("addlog.csv");
+void sortbest(int argc, char* argv[]) {
+    int plusday = stoi(argv[2]);
+    char buffer[512];
+    sprintf_s(buffer, "c:\\prenos\\NeuralFin\\data\\%d\\addlog.csv", plusday);
+    std::ifstream  data(buffer);
     std::string line;
     vector<std::string> lines;
     int x = 0;
@@ -1199,102 +1207,207 @@ void sortbest() {
     }
 };
 
+void multisortbest(int argc, char* argv[]) {
+    cout << endl;
+    int typecount = stoi(argv[2]);
+    char buffer[512];
+    std::string line;
+    vector<std::string> lines;
+    for (int cc=0; cc < typecount; cc++)
+    {
+        sprintf_s(buffer, "c:\\prenos\\NeuralFin\\data\\%d\\addlog.csv", cc);
+        std::ifstream  data(buffer);        
+        int x = 0;
+        while ((std::getline(data, line)))
+        {
+            lines.push_back(line);
+        }
+    }
+    int subsize = lines.size() / typecount;
+    int percols = 5;
+    std::string templine;
+    int count = subsize / percols;
+    double score[500];
+    for (int i = 0; i < count; i++)
+    {
+        score[i] = 0;
+        double weight = 1;
+        for (int k = 0; k < typecount; k++)
+        {
+            score[i] += weight + stod(lines[count * percols * k + i * percols + 4]);
+            weight *= 0.5;
+        }
+    }
+    for (int i = 1; i < count; i++)
+        for (int j = 0; j < i; j++)
+        {
+            //double comp1 = stod(lines[j * percols + 4]);
+            //double comp2 = stod(lines[i * percols + 4]);
+            if (score[j] < score[i])
+            {
+                double tempsc = score[j];
+                score[j] = score[i];
+                score[i] = tempsc;
+
+                for (int k = 0; k < typecount; k++)
+                {
+                    templine = lines[count * percols * k + j * percols + 0];
+                    lines[count * percols * k + j * percols + 0] = lines[count * percols * k + i * percols + 0];
+                    lines[count * percols * k + i * percols + 0] = templine;
+
+                    templine = lines[count * percols * k + j * percols + 1];
+                    lines[count * percols * k + j * percols + 1] = lines[count * percols * k + i * percols + 1];
+                    lines[count * percols * k + i * percols + 1] = templine;
+
+                    templine = lines[count * percols * k + j * percols + 2];
+                    lines[count * percols * k + j * percols + 2] = lines[count * percols * k + i * percols + 2];
+                    lines[count * percols * k + i * percols + 2] = templine;
+
+                    templine = lines[count * percols * k + j * percols + 3];
+                    lines[count * percols * k + j * percols + 3] = lines[count * percols * k + i * percols + 3];
+                    lines[count * percols * k + i * percols + 3] = templine;
+
+                    templine = lines[count * percols * k + j * percols + 4];
+                    lines[count * percols * k + j * percols + 4] = lines[count * percols * k + i * percols + 4];
+                    lines[count * percols * k + i * percols + 4] = templine;
+                }
+            }
+        }
+
+    for (int i = 0; i < lines.size()/ typecount; i++)
+    {
+        cout << lines[0*(lines.size() / typecount)+i];
+        if (i % percols == 0)cout << "| ";//name
+        if (i % percols == 1)cout << " |";//date
+        if (i % percols == 2)cout << " | " /*<< lines[1 * (lines.size() / typecount) + i] << " | "*/;//PR
+        if (i % percols == 3)cout << " | " << lines[1 * (lines.size() / typecount) + i] << " | ";//DF
+        if (i % percols == 4) {//percent
+            cout << "% | " << lines[1 * (lines.size() / typecount) + i] << "% |" << lines[0 * (lines.size() / typecount) + i - 4] << endl;
+        }
+    }
+};
+
 void makebatches(int argc, char* argv[]) {
-    std::ifstream  data("c:\\prenos\\NeuralFin\\eodapikey.txt");
+    char path[500];
+    int count = stoi(argv[2]);
+
+    std::ifstream  data("c:\\prenos\\NeuralFin\\data\\eodapikey.txt");
     std::string apikey;
     std::getline(data, apikey);
     data.close();
 
     ofstream myfile;
-    myfile.open("dwn.bat");
-    for (int i = 2; i < argc; i++)
-    {        
-        myfile << "del \"c:\\prenos\\NeuralFin\\"<< argv[i] <<".US@api_token="<< apikey <<"\"" << endl;
-        myfile << "c:\\prenos\\NeuralFin\\wget\\bin\\wget -P c:\\prenos\\NeuralFin \"https://eodhistoricaldata.com/api/eod/"<< argv[i] <<".US?api_token=" << apikey << "\""<< endl;
-        myfile << "copy \"c:\\prenos\\NeuralFin\\" << argv[i] <<".US@api_token=" << apikey << "\" \"c:\\prenos\\NeuralFin\\" << argv[i] <<".csv\"" << endl << endl;
-    }
-    myfile.close();
 
-    myfile.open("findbest.bat");
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\scripts\\multifindbest.bat");
+    myfile.open(path);
     myfile << "REM xx" << endl;
-    myfile << "cd c:\\prenos\\NeuralFin" << endl;
-    myfile << "del \"c:\\prenos\\NeuralFin\\addlog.csv\"" << endl;
-    for (int i = 2; i < argc; i++)
+    for (int cc = 0; cc < count; cc++)
     {
-        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe no " << argv[i];
-        for (int j = 2; j < argc; j++)
-            if (strcmp(argv[i], argv[j]))
-                myfile << " " << argv[j];
-        myfile << endl;
-    }
-    myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe sort" << endl;
-    myfile << "PAUSE" << endl;
-    myfile.close();
-
-    myfile.open("run-all.bat");
-    myfile << "REM xx" << endl;
-    myfile << "cd c:\\prenos\\NeuralFin" << endl;
-    for (int i = 2; i < argc; i++)
-    {
-        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe yes " << argv[i];
-        for (int j = 2; j < argc; j++)
-            if (strcmp(argv[i], argv[j]))
-                myfile << " " << argv[j];
-        myfile << endl;
-    }
-    myfile << "PAUSE" << endl;
-    myfile.close();
-
-    for (int i = 2; i < argc; i++)
-    {
-        char path[500];
-        sprintf_s(path, "run-all-part%d.bat", 1+((i - 2) / ((argc - 2) / 4)));
-        if ((i - 2) % ((argc - 2) / 4) == 0)
+        myfile << "del \"c:\\prenos\\NeuralFin\\data\\" << cc << "\\addlog.csv\"" << endl;
+        for (int i = 3; i < argc; i++)
         {
-            myfile.open(path);
-            myfile << "REM xx" << endl;
-            myfile << "cd c:\\prenos\\NeuralFin" << endl;
-        }
-        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe yes " << argv[i];
-        for (int j = 2; j < argc; j++)
-            if (strcmp(argv[i], argv[j]))
-                myfile << " " << argv[j];
-        myfile << endl;
-        if ((i - 2) % ((argc - 2) / 4) == ((argc - 2) / 4)-1)
-        {
-            myfile << "PAUSE" << endl;
-            myfile.close();
+            myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe no " << cc << " " << argv[i];
+            for (int j = 3; j < argc; j++)
+                if (strcmp(argv[i], argv[j]))
+                    myfile << " " << argv[j];
+            myfile << endl;
         }
     }
-
-    myfile.open("run-score.bat");
-    myfile << "REM xx" << endl;
-    myfile << "cd c:\\prenos\\NeuralFin" << endl;
-    for (int i = 2; i < argc; i++)
-    {
-        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe score " << argv[i];
-        for (int j = 2; j < argc; j++)
-            if (strcmp(argv[i], argv[j]))
-                myfile << " " << argv[j];
-        myfile << endl;
-    }
+    myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe multisort " << count << endl;
     myfile << "PAUSE" << endl;
     myfile.close();
-
-    for (int i = 2; i < argc; i++)
+    
+    myfile.open("c:\\prenos\\NeuralFin\\scripts\\dwn.bat");
+    for (int i = 3; i < argc; i++)
     {
-        char path[500];
-        sprintf_s(path,"run-only%d.bat",i-1);
+        myfile << "del \"c:\\prenos\\NeuralFin\\data\\" << argv[i] << ".US@api_token=" << apikey << "\"" << endl;
+        myfile << "c:\\prenos\\NeuralFin\\wget\\bin\\wget -P c:\\prenos\\NeuralFin\\data \"https://eodhistoricaldata.com/api/eod/" << argv[i] << ".US?api_token=" << apikey << "\"" << endl;
+        myfile << "copy \"c:\\prenos\\NeuralFin\\data\\" << argv[i] << ".US@api_token=" << apikey << "\" \"c:\\prenos\\NeuralFin\\data\\" << argv[i] << ".csv\"" << endl << endl;
+    }
+    myfile.close();
+
+    for (int cc = 0; cc < count; cc++)
+    {
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\scripts\\%d\\findbest.bat", cc);
+        myfile.open(path);
+        myfile << "REM xx" << endl;
+        myfile << "del \"c:\\prenos\\NeuralFin\\data\\"<< cc <<"\\addlog.csv\"" << endl;
+        for (int i = 3; i < argc; i++)
+        {
+            myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe no " << cc << " " << argv[i];
+            for (int j = 3; j < argc; j++)
+                if (strcmp(argv[i], argv[j]))
+                    myfile << " " << argv[j];
+            myfile << endl;
+        }
+        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe sort " << cc << endl;
+        myfile << "PAUSE" << endl;
+        myfile.close();
+
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\scripts\\%d\\run-all.bat", cc);
+        myfile.open(path);
+        myfile << "REM xx" << endl;
+        for (int i = 3; i < argc; i++)
+        {
+            myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe yes " << cc << " " << argv[i];
+            for (int j = 3; j < argc; j++)
+                if (strcmp(argv[i], argv[j]))
+                    myfile << " " << argv[j];
+            myfile << endl;
+        }
+        myfile << "PAUSE" << endl;
+        myfile.close();
+
+        for (int i = 3; i < argc; i++)
+        {
+            sprintf_s(path, "c:\\prenos\\NeuralFin\\scripts\\%d\\run-all-part%d.bat", cc,0 + ((i - 3) / ((argc - 3) / 4)));
+            if ((i - 3) % ((argc - 3) / 4) == 0)
+            {
+                myfile.open(path);
+                myfile << "REM xx" << endl;
+                myfile << "cd c:\\prenos\\NeuralFin" << endl;
+            }
+            myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe yes " << cc << " " << argv[i];
+            for (int j = 3; j < argc; j++)
+                if (strcmp(argv[i], argv[j]))
+                    myfile << " " << argv[j];
+            myfile << endl;
+            if ((i - 3) % ((argc - 3) / 4) == ((argc - 3) / 4) - 1)
+            {
+                myfile << "PAUSE" << endl;
+                myfile.close();
+            }
+        }
+
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\scripts\\%d\\run-score.bat", cc);
         myfile.open(path);
         myfile << "REM xx" << endl;
         myfile << "cd c:\\prenos\\NeuralFin" << endl;
-        myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe yes " << argv[i];
-        for (int j = 2; j < argc; j++)
-            if (strcmp(argv[i], argv[j]))
-                myfile << " " << argv[j];
-        myfile << endl;
+        for (int i = 3; i < argc; i++)
+        {
+            myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe score " << cc << " " << argv[i];
+            for (int j = 3; j < argc; j++)
+                if (strcmp(argv[i], argv[j]))
+                    myfile << " " << argv[j];
+            myfile << endl;
+        }
         myfile << "PAUSE" << endl;
         myfile.close();
+
+        for (int i = 3; i < argc; i++)
+        {
+            sprintf_s(path, "c:\\prenos\\NeuralFin\\scripts\\%d\\run-only%d.bat", cc,i - 2);
+            myfile.open(path);
+            myfile << "REM xx" << endl;
+            myfile << "cd c:\\prenos\\NeuralFin" << endl;
+            myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe yes " << cc << " " << argv[i];
+            for (int j = 3; j < argc; j++)
+                if (strcmp(argv[i], argv[j]))
+                    myfile << " " << argv[j];
+            myfile << endl;
+            myfile << "PAUSE" << endl;
+            myfile.close();
+        }
     }
 };
 
@@ -1311,7 +1424,9 @@ int main(int argc, char* argv[])
             else if ((argc > 1) && (!strcmp("score", argv[1])))
                 printscore(renderer, argc, argv);
             else if ((argc > 1) && (!strcmp("sort", argv[1])))
-                sortbest();
+                sortbest(argc, argv);
+            else if ((argc > 1) && (!strcmp("multisort", argv[1])))
+                multisortbest(argc, argv);
             else if ((argc > 1) && (!strcmp("makebatches", argv[1])))
                 makebatches(argc, argv);
             else
