@@ -1142,12 +1142,16 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     cout << -(1-(output)[rows - 1]/datavect[datavect.size() - 1].close)*100 << " %" << endl;
     cout << "PROFIT: " << profitx << "%" << endl;
 
-    sprintf_s(buffer, "PR:%0.2f", profitx);
+    sprintf_s(buffer, "PR:%0.1f", profitx);
     savetobestlog(buffer, bestlogpath);
     
-    sprintf_s(buffer, "DF:%0.2f$->%0.2f$(%0.2f$)", datavect[datavect.size() - 1].close, (output)[rows - 1], (output)[rows - 1] - datavect[datavect.size() - 1].close);
+    if(plusday==0)
+        sprintf_s(buffer, "DF:%0.1f$->%0.1f$(%0.1f$)/(%0.1f$-%0.1f$)", datavect[datavect.size() - 1].close, (output)[rows - 1], (output)[rows - 1] - datavect[datavect.size() - 1].close, datavect[datavect.size() - 1].low, datavect[datavect.size() - 1].high);
+    else
+        sprintf_s(buffer, "DF:%0.1f$->%0.1f$(%0.1f$)", datavect[datavect.size() - 1].close, (output)[rows - 1], (output)[rows - 1] - datavect[datavect.size() - 1].close);    
+
     savetobestlog(buffer, bestlogpath);
-    sprintf_s(buffer, "%0.2f", -(1 - (output)[rows - 1] / datavect[datavect.size() - 1].close) * 100);
+    sprintf_s(buffer, "%0.1f", -(1 - (output)[rows - 1] / datavect[datavect.size() - 1].close) * 100);
     savetobestlog(buffer, bestlogpath);
 };
 
@@ -1196,8 +1200,8 @@ void sortbest(int argc, char* argv[]) {
         }
     for (int i = 0; i < lines.size(); i++)
     {
-        cout << lines[i];
-        if (i % percols == 0)cout << " | ";
+        if (i % percols > 0)cout << lines[i];
+        //if (i % percols == 0)cout << " | ";
         if (i % percols == 1)cout << " | ";
         if (i % percols == 2)cout << " | ";
         if (i % percols == 3)cout << " | ";
@@ -1276,8 +1280,9 @@ void multisortbest(int argc, char* argv[]) {
 
     for (int i = 0; i < lines.size()/ typecount; i++)
     {
-        cout << lines[0*(lines.size() / typecount)+i];
-        if (i % percols == 0)cout << "| ";//name
+        //cout << lines[0*(lines.size() / typecount)+i];
+        if (i % percols > 0)cout << lines[0 * (lines.size() / typecount) + i];
+        //if (i % percols == 0)cout << " | ";
         if (i % percols == 1)cout << " |";//date
         if (i % percols == 2)cout << " | " /*<< lines[1 * (lines.size() / typecount) + i] << " | "*/;//PR
         if (i % percols == 3)cout << " | " << lines[1 * (lines.size() / typecount) + i] << " | ";//DF
