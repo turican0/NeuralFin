@@ -8,14 +8,13 @@ c:\prenos\NeuralFin\neurnet.cpp(275,53): warning C4244: argument: double se pře
 c:\prenos\NeuralFin\neurnet.cpp(275,46): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
 c:\prenos\NeuralFin\neurnet.cpp(293,114): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
 c:\prenos\NeuralFin\neurnet.cpp(293,65): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(580,65): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(816,66): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1011,68): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1172,39): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1230,43): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(584,65): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(820,66): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1015,68): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1176,39): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1233,43): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
   Vytváří se kód.
-  2 of 388 functions ( 0.5%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    2 functions had inline decision re-evaluated but remain unchanged
+  Previous IPDB and IOBJ mismatch, fall back to full compilation.
+  All 388 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Vytváření kódu se dokončilo.
   neurnet.vcxproj -> C:\prenos\NeuralFin\x64\Release\neurnet.exe

@@ -533,10 +533,14 @@ void savedata(vector<double>* weight,char* filename) {
     myfile.close();
 };
 
-void savetobestlog(char* buffer, char* filename) {
+void savetobestlog(char* buffer, char* filename,int minsize) {
+    char buffer2[256]="";
+    for (int i = 0; i < 256; i++)buffer2[i]=' ';
+    for (int i = 0; i < strlen(buffer); i++)buffer2[i] = buffer[i];
+    buffer2[minsize] = 0;
     ofstream myfile;
     myfile.open(filename, std::ios_base::app);
-    myfile << buffer << endl;
+    myfile << buffer2 << endl;
     myfile.close();
 };
 
@@ -952,7 +956,7 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     char bestlogpath[512];
     sprintf_s(bestlogpath, "c:\\prenos\\NeuralFin\\data\\%d\\addlog.csv", plusday);
     char path[512];
-    savetobestlog(buffer, bestlogpath);
+    savetobestlog(buffer, bestlogpath,4);
     sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[3]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
@@ -992,7 +996,7 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     //test date
 
     sprintf_s(buffer, "date:%d-%d-%d", (int)datavect[datavect.size() - 1].ear, (int)datavect[datavect.size() - 1].moon, (int)datavect[datavect.size() - 1].day);
-    savetobestlog(buffer, bestlogpath);
+    savetobestlog(buffer, bestlogpath,14);
     for (int oi = 0; oi < argc - 4; oi++)
     {
         sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[4 + oi]);
@@ -1142,17 +1146,17 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     cout << -(1-(output)[rows - 1]/datavect[datavect.size() - 1].close)*100 << " %" << endl;
     cout << "PROFIT: " << profitx << "%" << endl;
 
-    sprintf_s(buffer, "PR:%0.1f", profitx);
-    savetobestlog(buffer, bestlogpath);
+    sprintf_s(buffer, "PR:%0.1f", profitx/(plusday+1));
+    savetobestlog(buffer, bestlogpath,9);
     
-    if(plusday==0)
+    //if(plusday==0)
         sprintf_s(buffer, "DF:%0.1f$->%0.1f$(%0.1f$)/(%0.1f$-%0.1f$)", datavect[datavect.size() - 1].close, (output)[rows - 1], (output)[rows - 1] - datavect[datavect.size() - 1].close, datavect[datavect.size() - 1].low, datavect[datavect.size() - 1].high);
-    else
-        sprintf_s(buffer, "DF:%0.1f$->%0.1f$(%0.1f$)", datavect[datavect.size() - 1].close, (output)[rows - 1], (output)[rows - 1] - datavect[datavect.size() - 1].close);    
+    /*else
+        sprintf_s(buffer, "DF:%0.1f$->%0.1f$(%0.1f$)", datavect[datavect.size() - 1].close, (output)[rows - 1], (output)[rows - 1] - datavect[datavect.size() - 1].close);    */
 
-    savetobestlog(buffer, bestlogpath);
-    sprintf_s(buffer, "%0.1f", -(1 - (output)[rows - 1] / datavect[datavect.size() - 1].close) * 100);
-    savetobestlog(buffer, bestlogpath);
+    savetobestlog(buffer, bestlogpath,45);
+    sprintf_s(buffer, "%0.1f%s", -(1 - (output)[rows - 1] / datavect[datavect.size() - 1].close) * 100,"%");
+    savetobestlog(buffer, bestlogpath,6);
 };
 
 void sortbest(int argc, char* argv[]) {
@@ -1200,13 +1204,12 @@ void sortbest(int argc, char* argv[]) {
         }
     for (int i = 0; i < lines.size(); i++)
     {
-        if (i % percols > 0)cout << lines[i];
-        //if (i % percols == 0)cout << " | ";
+        if (i % percols == 0)cout << " | ";
         if (i % percols == 1)cout << " | ";
         if (i % percols == 2)cout << " | ";
         if (i % percols == 3)cout << " | ";
         if (i % percols == 4) {
-            cout << "% | " << lines[i-4] <<endl;
+            cout << " | " << lines[i-4] <<endl;
         }
     }
 };
@@ -1278,18 +1281,26 @@ void multisortbest(int argc, char* argv[]) {
             }
         }
 
-    for (int i = 0; i < lines.size()/ typecount; i++)
-    {
-        //cout << lines[0*(lines.size() / typecount)+i];
-        if (i % percols > 0)cout << lines[0 * (lines.size() / typecount) + i];
-        //if (i % percols == 0)cout << " | ";
-        if (i % percols == 1)cout << " |";//date
-        if (i % percols == 2)cout << " | " /*<< lines[1 * (lines.size() / typecount) + i] << " | "*/;//PR
-        if (i % percols == 3)cout << " | " << lines[1 * (lines.size() / typecount) + i] << " | ";//DF
-        if (i % percols == 4) {//percent
-            cout << "% | " << lines[1 * (lines.size() / typecount) + i] << "% |" << lines[0 * (lines.size() / typecount) + i - 4] << endl;
+    
+    
+        for (int i = 0; i < lines.size() / (typecount* percols); i++)
+        {
+            
+            for (int j = 0; j < typecount; j++)
+            for (int k = 0; k < percols; k++)
+            {
+                cout << lines[i*percols + j * (lines.size()/ typecount) + k];
+                if (k == 0)cout << " | ";
+                if (k == 1)cout << " | ";//date
+                if (k == 2)cout << " | " /*<< lines[1 * (lines.size() / typecount) + i] << " | "*/;//PR
+                if (k == 3)cout << " | " /*<< lines[j * (lines.size() / typecount) + k] << " | "*/;//DF
+                if (k == 4) {//percent
+                    cout << " | " << /*lines[j * (lines.size() / typecount) + k] << "% |" <<*/ 
+                        lines[i * percols + j * (lines.size() / typecount) + k-4] << endl;
+                }                
+            }
+            cout << endl;
         }
-    }
 };
 
 void makebatches(int argc, char* argv[]) {

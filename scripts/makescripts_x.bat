@@ -1,0 +1,1 @@
+c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe makebatches 2 SQ NET
