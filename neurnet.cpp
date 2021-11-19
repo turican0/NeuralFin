@@ -1424,6 +1424,30 @@ void makebatches(int argc, char* argv[]) {
             myfile << "PAUSE" << endl;
             myfile.close();
         }
+
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%d\\images.html", cc);
+        myfile.open(path);
+        myfile << "<body>" << endl;
+        myfile << "<table>" << endl;
+        for (int i = 3; i < argc; i++)
+        {
+            myfile << "<tr>" << endl;
+            myfile << "<td>" << endl;
+            myfile << argv[i] << endl;
+            myfile << "</td>" << endl;
+            myfile << "<td align = \"right\">" << endl;
+            myfile << argv[i] << endl;
+            myfile << "</td>" << endl;
+            myfile << "</tr>" << endl;
+            myfile << "<tr>" << endl;
+            myfile << "<td colspan = \"2\">" << endl;
+            myfile << "<img src = \""<<argv[i]<<"-screen.png\">" << endl;
+            myfile << "</td>" << endl;
+            myfile << "</tr>" << endl;
+        }
+        myfile << "</table>" << endl;
+        myfile << "</body>" << endl;
+        myfile.close();
     }
 };
 
