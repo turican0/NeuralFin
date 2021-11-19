@@ -59,7 +59,7 @@ std::vector<data_t> dataother[100];
 
 int inputsize = 30;//; 30;
 int outputsize = 1;
-int countoff = 11;// 4;
+int countoff = 6;// 11;// 4;
 int rowtrunc = 5000;// 2500;// 10000;
 int countofder = 3;//3;
 
@@ -1241,7 +1241,7 @@ void multisortbest(int argc, char* argv[]) {
         double weight = 1;
         for (int k = 0; k < typecount; k++)
         {
-            score[i] += weight + stod(lines[count * percols * k + i * percols + 4]);
+            score[i] += weight * stod(lines[count * percols * k + i * percols + 4]);
             weight *= 0.5;
         }
     }
@@ -1279,10 +1279,23 @@ void multisortbest(int argc, char* argv[]) {
                     lines[count * percols * k + i * percols + 4] = templine;
                 }
             }
-        }
+        }    
 
-    
-    
+        std::time_t t = std::time(0);   // get time now
+        errno_t err;
+        __time64_t long_time;
+        struct tm newtime;
+        //std::tm* now = std::localtime_s(&t);
+        _time64(&long_time);
+        err = _localtime64_s(&newtime, &long_time);
+        --newtime.tm_mday; // Move back one day
+        mktime(&newtime); // Normalize
+
+        char path[512];
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\log\\%04d-%02d-%02d.txt", newtime.tm_year+1900, newtime.tm_mon+1,newtime.tm_mday+1);
+        ofstream myfile;
+        myfile.open(path, std::ios_base::trunc);
+
         for (int i = 0; i < lines.size() / (typecount* percols); i++)
         {
             
@@ -1290,17 +1303,33 @@ void multisortbest(int argc, char* argv[]) {
             for (int k = 0; k < percols; k++)
             {
                 cout << lines[i*percols + j * (lines.size()/ typecount) + k];
-                if (k == 0)cout << " | ";
-                if (k == 1)cout << " | ";//date
-                if (k == 2)cout << " | " /*<< lines[1 * (lines.size() / typecount) + i] << " | "*/;//PR
-                if (k == 3)cout << " | " /*<< lines[j * (lines.size() / typecount) + k] << " | "*/;//DF
+                myfile << lines[i * percols + j * (lines.size() / typecount) + k];
+                if (k == 0){
+                    cout << " | ";
+                    myfile << " | ";
+                }
+                if (k == 1){
+                    cout << " | ";//date
+                    myfile << " | ";//date
+                }
+                if (k == 2){
+                    cout << " | ";//PR
+                    myfile << " | ";//PR
+                }
+                if (k == 3){
+                    cout << " | ";//DF
+                    myfile << " | ";//DF
+                }
                 if (k == 4) {//percent
-                    cout << " | " << /*lines[j * (lines.size() / typecount) + k] << "% |" <<*/ 
-                        lines[i * percols + j * (lines.size() / typecount) + k-4] << endl;
+                    cout << " | " << lines[i * percols + j * (lines.size() / typecount) + k-4] << endl;
+                    myfile << " | " << lines[i * percols + j * (lines.size() / typecount) + k - 4] << endl;
                 }                
             }
             cout << endl;
+            myfile << endl;
         }
+
+        myfile.close();
 };
 
 void makebatches(int argc, char* argv[]) {
