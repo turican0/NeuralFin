@@ -1,3 +1,3 @@
-C:\prenos\NeuralFin\x64\Release\neurnet.vcxproj.CopyComplete
 C:\prenos\NeuralFin\x64\Release\neurnet.exe
 C:\prenos\NeuralFin\x64\Release\SDL2.dll
+C:\prenos\NeuralFin\x64\Release\neurnet.vcxproj.CopyComplete

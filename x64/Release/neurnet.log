@@ -10,12 +10,14 @@ C:\prenos\NeuralFin\neurnet.cpp(293,114): warning C4244: argument: double se př
 C:\prenos\NeuralFin\neurnet.cpp(293,65): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
 C:\prenos\NeuralFin\neurnet.cpp(584,65): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
 C:\prenos\NeuralFin\neurnet.cpp(820,66): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-C:\prenos\NeuralFin\neurnet.cpp(1015,68): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-C:\prenos\NeuralFin\neurnet.cpp(1176,39): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
-C:\prenos\NeuralFin\neurnet.cpp(1233,43): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(997,60): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(998,60): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(999,56): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(1024,68): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(1185,39): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
+C:\prenos\NeuralFin\neurnet.cpp(1242,43): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
   Vytváří se kód.
-  1 of 388 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    10 functions had inline decision re-evaluated but remain unchanged
+  Previous IPDB not found, fall back to full compilation.
+  All 412 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Vytváření kódu se dokončilo.
   neurnet.vcxproj -> C:\prenos\NeuralFin\x64\Release\neurnet.exe

@@ -949,15 +949,15 @@ void printscore(SDL_Renderer* renderer, int argc, char* argv[]) {
 }
 
 void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
-    cout << "--- " << argv[3] << " - " << argv[1] << " ---" << endl;
-    int plusday = stoi(argv[2]);
+    cout << "--- " << argv[4] << " - " << argv[1] << " ---" << endl;
+    int plusday = stoi(argv[3]);
     char buffer[512];
-    sprintf_s(buffer, "%s", argv[3]);
+    sprintf_s(buffer, "%s", argv[4]);
     char bestlogpath[512];
     sprintf_s(bestlogpath, "c:\\prenos\\NeuralFin\\data\\%d\\addlog.csv", plusday);
     char path[512];
     savetobestlog(buffer, bestlogpath,4);
-    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[3]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[4]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
 
@@ -971,23 +971,32 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     err = _localtime64_s(&newtime, &long_time);
     --newtime.tm_mday; // Move back one day
     mktime(&newtime); // Normalize
-    if (newtime.tm_year + 1900 != datavect[datavect.size() - 1].ear) {
-        cout << endl << "!!! incorect ear !!!" << endl;
-        //cin.ignore(1);
-        std::cin.get();
-        exit(0);
+    if (!strcmp(argv[3], "nodetect"))
+    {
+        if (newtime.tm_year + 1900 != datavect[datavect.size() - 1].ear) {
+            cout << endl << "!!! incorect ear !!!" << endl;
+            //cin.ignore(1);
+            std::cin.get();
+            exit(0);
+        }
+        if (newtime.tm_mon + 1 != datavect[datavect.size() - 1].moon) {
+            cout << endl << "!!! incorect moon !!!" << endl;
+            //cin.ignore(1);
+            std::cin.get();
+            exit(0);
+        }
+        if (newtime.tm_mday != datavect[datavect.size() - 1].day) {
+            cout << endl << "!!! incorect day !!!" << endl;
+            //cin.ignore(1);
+            std::cin.get();
+            exit(0);
+        }
     }
-    if (newtime.tm_mon + 1 != datavect[datavect.size() - 1].moon) {
-        cout << endl << "!!! incorect moon !!!" << endl;
-        //cin.ignore(1);
-        std::cin.get();
-        exit(0);
-    }
-    if (newtime.tm_mday != datavect[datavect.size() - 1].day) {
-        cout << endl << "!!! incorect day !!!" << endl;
-        //cin.ignore(1);
-        std::cin.get();
-        exit(0);
+    else
+    {
+        newtime.tm_year = datavect[datavect.size() - 1].ear-1900;
+        newtime.tm_mon = datavect[datavect.size() - 1].moon-1;
+        newtime.tm_mday = datavect[datavect.size() - 1].day;
     }
     /*std::cout << (now->tm_year + 1900) << '-'
         << (now->tm_mon + 1) << '-'
@@ -997,9 +1006,9 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
 
     sprintf_s(buffer, "date:%d-%d-%d", (int)datavect[datavect.size() - 1].ear, (int)datavect[datavect.size() - 1].moon, (int)datavect[datavect.size() - 1].day);
     savetobestlog(buffer, bestlogpath,14);
-    for (int oi = 0; oi < argc - 4; oi++)
+    for (int oi = 0; oi < argc - 5; oi++)
     {
-        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[4 + oi]);
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[5 + oi]);
         parseCSVother(path);
     }
 
@@ -1135,11 +1144,11 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     }
 
     //char path[512];
-    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%d\\%s-weight.csv", plusday, argv[3]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%d\\%s-weight.csv", plusday, argv[4]);
     loaddata(&weight, path);
     compoutputs(&input, &output, &weight);
 
-    drawgraph(renderer, &output, 0, &weight, argv[3], plusday);
+    drawgraph(renderer, &output, 0, &weight, argv[4], plusday);
     //compnextday(&input, &output, &weight);
     cout << datavect[datavect.size() - 1].close << " -> " << (output)[rows - 1] << " $" << endl;
     cout << (output)[rows - 1]- datavect[datavect.size()-1].close << " $" << endl;
@@ -1351,7 +1360,7 @@ void makebatches(int argc, char* argv[]) {
         myfile << "del \"c:\\prenos\\NeuralFin\\data\\" << cc << "\\addlog.csv\"" << endl;
         for (int i = 3; i < argc; i++)
         {
-            myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe no " << cc << " " << argv[i];
+            myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe no detect " << cc << " " << argv[i];
             for (int j = 3; j < argc; j++)
                 if (strcmp(argv[i], argv[j]))
                     myfile << " " << argv[j];
@@ -1361,7 +1370,26 @@ void makebatches(int argc, char* argv[]) {
     myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe multisort " << count << endl;
     myfile << "PAUSE" << endl;
     myfile.close();
-    
+
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\scripts\\multifindbest_nodetect.bat");
+    myfile.open(path);
+    myfile << "REM xx" << endl;
+    for (int cc = 0; cc < count; cc++)
+    {
+        myfile << "del \"c:\\prenos\\NeuralFin\\data\\" << cc << "\\addlog.csv\"" << endl;
+        for (int i = 3; i < argc; i++)
+        {
+            myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe no nodetect " << cc << " " << argv[i];
+            for (int j = 3; j < argc; j++)
+                if (strcmp(argv[i], argv[j]))
+                    myfile << " " << argv[j];
+            myfile << endl;
+        }
+    }
+    myfile << "c:\\prenos\\NeuralFin\\x64\\Release\\neurnet.exe multisort " << count << endl;
+    myfile << "PAUSE" << endl;
+    myfile.close();
+
     myfile.open("c:\\prenos\\NeuralFin\\scripts\\dwn.bat");
     for (int i = 3; i < argc; i++)
     {
