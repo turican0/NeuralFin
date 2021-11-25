@@ -1,0 +1,17 @@
+koncept
+
+váha[timestamp][pro entitu][z entity][zpustob vypoctu(mocnina atd.)]
+váhacount[timestamp][pro entitu][z entity][zpustob vypoctu(mocnina atd.)]
+
+->
+
+váha[pro entitu][z entity][zpustob vypoctu(mocnina atd.)]
+
+get act states
+-from generator
+-from alpaca
+
+-every time:
+-find best papers
+-save states
+-recaslculate weights

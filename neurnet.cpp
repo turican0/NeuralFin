@@ -23,8 +23,46 @@
 #include "SDL.h"
 #include <SDL_image.h>
 
+#define databyhour
+
 using namespace std;
 
+#ifdef databyhour
+struct data_t
+{
+    double ear;
+    double moon;
+    double day;
+    double hour;
+    double minute;
+    double second;
+    double open;
+    double high;
+    double low;
+    double close;
+    double aclose;
+    double volume;
+};
+
+std::istream& operator>>(std::istream& ist, data_t& data)
+{
+    char comma;
+    ist >> data.ear >> comma
+        >> data.moon >> comma
+        >> data.day >> comma
+        >> data.hour >> comma
+        >> data.minute >> comma
+        >> data.second >> comma
+        >> data.open >> comma
+        >> data.high >> comma
+        >> data.low >> comma
+        >> data.close >> comma
+        >> data.aclose >> comma
+        >> data.volume
+        ;
+    return ist;
+}
+#else
 struct data_t
 {
     double ear;
@@ -53,15 +91,24 @@ std::istream& operator>>(std::istream& ist, data_t& data)
         ;
     return ist;
 }
+#endif
 
 std::vector<data_t> datavect;
 std::vector<data_t> dataother[100];
+std::vector<data_t> dataother2[100];
+
 
 int inputsize = 30;//; 30;
 int outputsize = 1;
 int countoff = 6;// 11;// 4;
 int rowtrunc = 5000;// 2500;// 10000;
 int countofder = 3;//3;
+#ifdef databyhour
+char prefix[] = "bysec\\";
+#else
+char prefix[] = "";
+#endif
+
 
 int countother=0;
 void parseCSV(char* file) {
@@ -98,7 +145,7 @@ void parseCSVother(char* file) {
         else
         {
             lineStream >> data;            
-            dataother[countother].push_back(data);
+            dataother2[countother].push_back(data);
         }
         x++;
         if (x > rowtrunc)break;
@@ -246,8 +293,10 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
             int x1 = ((double)(i + posi + inputsize+ plusday) / datavect.size()) * rendx;
             int y1 = rendy - (y / (koef / 3) * rendy);
             if (i > 0)
+            {
                 if (!disablegraph)
                     SDL_RenderDrawLine(renderer, x1, y1, oldx, oldy);
+            }
             else
             {
                 double prex1 = ((double)(posi + inputsize - 1) / datavect.size()) * rendx;
@@ -342,7 +391,7 @@ void drawgraph(SDL_Renderer* renderer, vector<double>* output, int pos, vector<d
             s_SnapSource->pixels, s_SnapSource->pitch);
 
         char path[512];
-        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%d\\%s-screen.png", plusday, argv2);
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%d\\%s-screen.png", prefix,plusday, argv2);
         SDL_SaveBMP(s_SnapSource, path); // NomFichier is a char*
         SDL_UnlockSurface(s_SnapSource);
         SDL_FreeSurface(s_SnapSource);
@@ -568,7 +617,8 @@ void loaddata(vector<double>* weight, char* filename) {
     int x = 0;
     while ((std::getline(data, line)))
     {
-        (*weight)[x]=std::stod(line);
+        if((*weight).size()>x)
+            (*weight)[x]=std::stod(line);
         x++;
     }
 };
@@ -577,20 +627,93 @@ void loaddata(vector<double>* weight, char* filename) {
 //char* mainfilename = (char*)"0000000000000000";
 int countofothfiles = 3;
 
+long long maketimestamp(data_t data) {
+    return data.ear*60*60*24*32*366 + data.moon*60*60*24*32 + data.day*60*60*24 + data.hour*60*60 + data.minute*60 + data.second;
+};
+
 void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
     cout << "--- " << argv[3] << " - " << argv[1] << " ---" << endl;
     int plusday = stoi(argv[2]);
     char path[512];
-    sprintf_s(path,"c:\\prenos\\NeuralFin\\data\\%s.csv", argv[3]);
+    sprintf_s(path,"c:\\prenos\\NeuralFin\\%sdata\\%s.csv", prefix,argv[3]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
-    for (int oi = 0; oi < argc - 4; oi++)
+    for (int oi = 0; oi < argc - 3; oi++)
     {
-        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[4 + oi]);
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%s.csv", prefix,argv[3 + oi]);
         parseCSVother(path);
     }
 
+    for (int i = 0; i < datavect.size(); i++)
+    {
+        long long maintimestamp = maketimestamp(datavect[i]);
+        for (int j = 0; j < countother; j++)
+        {
+            int k = 0;
+            long long comparetimestamp = maketimestamp(dataother2[j][k]);
+            while ((comparetimestamp< maintimestamp)&&(k-1< dataother2[j].size()))
+            {
+                k++;
+                comparetimestamp = maketimestamp(dataother2[j][k]);                
+            }
+            dataother[j].push_back(dataother2[j][k]);
+            dataother[j].back().ear = datavect[i].ear;
+            dataother[j].back().moon = datavect[i].moon;
+            dataother[j].back().day = datavect[i].day;
+            dataother[j].back().hour = datavect[i].hour;
+            dataother[j].back().minute = datavect[i].minute;
+            dataother[j].back().second = datavect[i].second;
+        }
+    }
+
+    /*
+    int minsize = datavect.size();
+    int maxsize = datavect.size();
+    for(int i = 0; i<countother; i++) {
+            if(minsize> dataother[i].size())minsize=dataother[i].size();
+            if (maxsize < dataother[i].size())maxsize = dataother[i].size();
+    }
+
+    if (minsize != maxsize)
+    {
+        bool runagain = true;
+        //for (int i = 0; i < minsize; i++)
+        int i = 0;
+        while(runagain)
+        {
+            long long maxtimestamp = 0;
+            long long mintimestamp = LLONG_MAX;
+            cout << i << endl;
+            cout << datavect[i].day << "-" << datavect[i].hour << ":" << datavect[i].minute << endl;
+            for (int j = 0; j < countother; j++)
+                cout << dataother[j][i].day << "-" << dataother[j][i].hour << ":" << dataother[j][i].minute << endl;
+            if (maketimestamp(datavect[i]) > maxtimestamp)maxtimestamp = maketimestamp(datavect[i]);
+            if (maketimestamp(datavect[i]) < mintimestamp)mintimestamp = maketimestamp(datavect[i]);
+            for (int j = 0; j < countother; j++)
+            {
+                if (maketimestamp(dataother[j][i]) > maxtimestamp)maxtimestamp = maketimestamp(dataother[j][i]);
+                if (maketimestamp(dataother[j][i]) < mintimestamp)mintimestamp = maketimestamp(dataother[j][i]);
+            }
+            if (mintimestamp != maxtimestamp)
+            {
+                if (maketimestamp(datavect[i]) < maxtimestamp)datavect.erase(datavect.begin() + i);
+                for (int j = 0; j < countother; j++)
+                    if (maketimestamp(dataother[j][i]) < maxtimestamp)dataother[j].erase(dataother[j].begin() + i);
+            }
+            else
+                i++;
+            if(datavect.size()<=i)runagain=false;
+            for (int j = 0; j < countother; j++)
+                if (dataother[j].size() <=i)runagain = false;
+        }
+        datavect.resize(i);
+        for (int j = 0; j < countother; j++)
+            dataother[j].resize(i);
+    }
+    */
     findKoef();
+
+
 
     cols = 0;
     if (countofder > 0)cols += inputsize;
@@ -722,7 +845,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
     }
 
     //char path[512];
-    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%d\\%s-weight.csv", plusday,argv[3]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%d\\%s-weight.csv", prefix, plusday,argv[3]);
     loaddata(&weight, path);
 
     cout << "steps 1" << endl;
@@ -817,12 +940,12 @@ void printscore(SDL_Renderer* renderer, int argc, char* argv[]) {
     cout << "--- " << argv[3] << " - " << argv[1] << " ---" << endl;
     int plusday = stoi(argv[2]);
     char path[512];
-    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[3]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%s.csv", prefix,argv[3]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
     for (int oi = 0; oi < argc - 4; oi++)
     {
-        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[4 + oi]);
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%s.csv", prefix, argv[4 + oi]);
         parseCSVother(path);
     }
 
@@ -972,10 +1095,10 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     char buffer[512];
     sprintf_s(buffer, "%s", argv[4]);
     char bestlogpath[512];
-    sprintf_s(bestlogpath, "c:\\prenos\\NeuralFin\\data\\%d\\addlog.csv", plusday);
+    sprintf_s(bestlogpath, "c:\\prenos\\NeuralFin\\%sdata\\%d\\addlog.csv", prefix,plusday);
     char path[512];
     savetobestlog(buffer, bestlogpath,4);
-    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[4]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%s.csv", prefix,argv[4]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
 
@@ -1026,7 +1149,7 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     savetobestlog(buffer, bestlogpath,14);
     for (int oi = 0; oi < argc - 5; oi++)
     {
-        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[5 + oi]);
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%s.csv", prefix,argv[5 + oi]);
         parseCSVother(path);
     }
 
@@ -1162,7 +1285,7 @@ void computenextday(SDL_Renderer* renderer, int argc, char* argv[]) {
     }
 
     //char path[512];
-    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%d\\%s-weight.csv", plusday, argv[4]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%d\\%s-weight.csv", prefix,plusday, argv[4]);
     loaddata(&weight, path);
     compoutputs(&input, &output, &weight);
 
@@ -1192,10 +1315,10 @@ void computenextday2(SDL_Renderer* renderer, int argc, char* argv[]) {
     char buffer[512];
     sprintf_s(buffer, "%s", argv[4]);
     char bestlogpath[512];
-    sprintf_s(bestlogpath, "c:\\prenos\\NeuralFin\\data\\%d\\addlog.csv", plusday);
+    sprintf_s(bestlogpath, "c:\\prenos\\NeuralFin\\%sdata\\%d\\addlog.csv", prefix,plusday);
     char path[512];
     savetobestlog(buffer, bestlogpath, 4);
-    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[4]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%s.csv", prefix, argv[4]);
     parseCSV(path);
     cout << "date: " << datavect[datavect.size() - 1].ear << "-" << datavect[datavect.size() - 1].moon << "-" << datavect[datavect.size() - 1].day << endl;
 
@@ -1246,7 +1369,7 @@ void computenextday2(SDL_Renderer* renderer, int argc, char* argv[]) {
     savetobestlog(buffer, bestlogpath, 14);
     for (int oi = 0; oi < argc - 5; oi++)
     {
-        sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%s.csv", argv[5 + oi]);
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%s.csv", prefix,argv[5 + oi]);
         parseCSVother(path);
     }
 
@@ -1382,7 +1505,7 @@ void computenextday2(SDL_Renderer* renderer, int argc, char* argv[]) {
     }
 
     //char path[512];
-    sprintf_s(path, "c:\\prenos\\NeuralFin\\data\\%d\\%s-weight.csv", plusday, argv[4]);
+    sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%d\\%s-weight.csv", prefix,plusday, argv[4]);
     loaddata(&weight, path);
     compoutputs(&input, &output, &weight);
 
@@ -1409,7 +1532,7 @@ void computenextday2(SDL_Renderer* renderer, int argc, char* argv[]) {
 void sortbest(int argc, char* argv[]) {
     int plusday = stoi(argv[2]);
     char buffer[512];
-    sprintf_s(buffer, "c:\\prenos\\NeuralFin\\data\\%d\\addlog.csv", plusday);
+    sprintf_s(buffer, "c:\\prenos\\NeuralFin\\%sdata\\%d\\addlog.csv", prefix, plusday);
     std::ifstream  data(buffer);
     std::string line;
     vector<std::string> lines;
@@ -1469,7 +1592,7 @@ void multisortbest(int argc, char* argv[]) {
     vector<std::string> lines;
     for (int cc=0; cc < typecount; cc++)
     {
-        sprintf_s(buffer, "c:\\prenos\\NeuralFin\\data\\%d\\addlog.csv", cc);
+        sprintf_s(buffer, "c:\\prenos\\NeuralFin\\%sdata\\%d\\addlog.csv", prefix,cc);
         std::ifstream  data(buffer);        
         int x = 0;
         while ((std::getline(data, line)))
@@ -1539,7 +1662,7 @@ void multisortbest(int argc, char* argv[]) {
         mktime(&newtime); // Normalize
 
         char path[512];
-        sprintf_s(path, "c:\\prenos\\NeuralFin\\log\\%04d-%02d-%02d.txt", newtime.tm_year+1900, newtime.tm_mon+1,newtime.tm_mday+1);
+        sprintf_s(path, "c:\\prenos\\NeuralFin\\%slog\\%04d-%02d-%02d.txt", prefix,newtime.tm_year+1900, newtime.tm_mon+1,newtime.tm_mday+1);
         ofstream myfile;
         myfile.open(path, std::ios_base::trunc);
 

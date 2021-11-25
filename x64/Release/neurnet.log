@@ -1,28 +1,29 @@
 ﻿  neurnet.cpp
-c:\prenos\NeuralFin\neurnet.cpp(224,16): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(225,16): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(246,20): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(247,20): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(283,64): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(285,57): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(285,50): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(306,118): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(306,69): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(602,65): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(838,66): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1015,60): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1016,60): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1017,56): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1042,68): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1235,61): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1236,61): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1237,56): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1262,70): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1423,39): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
-c:\prenos\NeuralFin\neurnet.cpp(1480,43): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(271,16): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(272,16): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(293,20): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(294,20): warning C4244: inicializování: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(332,64): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(334,57): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(334,50): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(355,118): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(355,69): warning C4244: argument: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(631,116): warning C4244: return: double se převádí na __int64; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(725,65): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(961,66): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1138,60): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1139,60): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1140,56): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1165,68): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1358,61): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1359,61): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1360,56): warning C4244: =: double se převádí na int; může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1385,70): warning C4267: =: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1546,39): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
+c:\prenos\NeuralFin\neurnet.cpp(1603,43): warning C4267: inicializování: Převod z: size_t na: int, může dojít ke ztrátě dat.
   Vytváří se kód.
-  0 of 412 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+  48 of 416 functions (11.5%) were compiled, the rest were copied from previous compilation.
+    5 functions were new in current compilation
+    6 functions had inline decision re-evaluated but remain unchanged
   Vytváření kódu se dokončilo.
   neurnet.vcxproj -> C:\prenos\NeuralFin\x64\Release\neurnet.exe
