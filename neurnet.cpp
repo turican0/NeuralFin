@@ -23,7 +23,7 @@
 #include "SDL.h"
 #include <SDL_image.h>
 
-#define databyhour
+//#define databyhour
 
 using namespace std;
 
@@ -95,12 +95,14 @@ std::istream& operator>>(std::istream& ist, data_t& data)
 
 std::vector<data_t> datavect;
 std::vector<data_t> dataother[100];
+#ifdef databyhour
 std::vector<data_t> dataother2[100];
+#endif
 
 
 int inputsize = 30;//; 30;
 int outputsize = 1;
-int countoff = 6;// 11;// 4;
+int countoff = 4;// 11;// 4;
 int rowtrunc = 5000;// 2500;// 10000;
 int countofder = 3;//3;
 #ifdef databyhour
@@ -144,8 +146,12 @@ void parseCSVother(char* file) {
         if (first)first = false;
         else
         {
-            lineStream >> data;            
+            lineStream >> data;         
+#ifdef databyhour
             dataother2[countother].push_back(data);
+#else
+            dataother[countother].push_back(data);
+#endif
         }
         x++;
         if (x > rowtrunc)break;
@@ -627,9 +633,11 @@ void loaddata(vector<double>* weight, char* filename) {
 //char* mainfilename = (char*)"0000000000000000";
 int countofothfiles = 3;
 
+#ifdef databyhour
 long long maketimestamp(data_t data) {
     return data.ear*60*60*24*32*366 + data.moon*60*60*24*32 + data.day*60*60*24 + data.hour*60*60 + data.minute*60 + data.second;
 };
+#endif
 
 void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
     cout << "--- " << argv[3] << " - " << argv[1] << " ---" << endl;
@@ -644,6 +652,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
         parseCSVother(path);
     }
 
+#ifdef databyhour
     for (int i = 0; i < datavect.size(); i++)
     {
         long long maintimestamp = maketimestamp(datavect[i]);
@@ -665,6 +674,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
             dataother[j].back().second = datavect[i].second;
         }
     }
+#endif
 
     /*
     int minsize = datavect.size();
@@ -846,7 +856,7 @@ void optimize(SDL_Renderer* renderer, int argc, char* argv[]) {
 
     //char path[512];
     sprintf_s(path, "c:\\prenos\\NeuralFin\\%sdata\\%d\\%s-weight.csv", prefix, plusday,argv[3]);
-    loaddata(&weight, path);
+    //loaddata(&weight, path);
 
     cout << "steps 1" << endl;
     for (int step = 0; step < 5; step++)
