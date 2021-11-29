@@ -1,1 +1,3 @@
 C:\prenos\NeuralFin\x64\Debug\neurnet.exe
+C:\prenos\NeuralFin\x64\Debug\neurnet.vcxproj.CopyComplete
+C:\prenos\NeuralFin\x64\Debug\SDL2d.dll

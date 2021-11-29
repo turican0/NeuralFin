@@ -25,6 +25,8 @@
 
 //#define databyhour
 
+#define PSEUDORAND
+
 using namespace std;
 
 #ifdef databyhour
@@ -110,6 +112,13 @@ char prefix[] = "bysec\\";
 #else
 char prefix[] = "";
 #endif
+
+static double PseudoRand()
+{
+    int nSeed = 5323;
+    nSeed = (8253729 * nSeed + 2396403);
+    return (double)(nSeed % 32767) / 32767;
+}
 
 
 int countother=0;
@@ -460,8 +469,14 @@ void detectbest(int oo, int index,vector<double>* input, vector<double>* output,
         {
             //for (int k = 0; k < countoff; k++)
             int k = index;
-            {                
+            {   
+
+#ifdef PSEUDORAND
+                double locrand = PseudoRand() * 2;
+#else
                 double locrand = fRand(0, 2);
+#endif
+
                 double origweight = igetw(oo, weight, j, k);//(*weight)[k];
                 compoutputs(input, output, weight);
                 double geterror = detecterror(output, plusday);
